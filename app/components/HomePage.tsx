@@ -23,9 +23,9 @@ const HomePage: React.FC = () => {
         router.push(`/deal/${deal.id}`); // переход на детальную страницу акции
     };
 
-    const handleGoToCatalog = () => {
-        router.push("/catalog"); // переход в каталог
-    };
+    // const handleGoToCatalog = () => {
+    //     router.push("/catalog"); // переход в каталог
+    // };
 
     return (
         <div className="bg-gray-50 min-h-screen">
@@ -54,7 +54,7 @@ const HomePage: React.FC = () => {
                             </div>
                         </div>
                         <button
-                            onClick={handleGoToCatalog}
+                            // onClick={handleGoToCatalog}
                             className="bg-orange-500 text-white px-5 py-2.5 rounded-xl font-bold hover:bg-orange-600 transition shadow-md flex items-center"
                         >
                             В Каталог
