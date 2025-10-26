@@ -45,7 +45,7 @@ const BusinessPage: React.FC<BusinessPageProps> = ({ onBack }) => {
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <InputField label="Название акции" name="title" value={formData.title} onChange={handleChange} placeholder="Скидка 30% на пиццу" required />
                         <SelectField
-                            label="Категория"
+                            label="Категория товара/услуги"
                             name="category"
                             value={formData.category}
                             onChange={handleChange}

@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { SelectField } from "../../ui/SelectField";
 import { Button, FieldError, Input, RequiredMark, Textarea } from "@/app/ui";
+import CategorySelectorModal, { Category } from "./CategorySelectorModal";
 
 type OfferFormValues = {
   title: string;
@@ -38,11 +39,14 @@ type OfferType = {
 };
 
 export default function OfferForm() {
+  const [modalOpen, setModalOpen] = useState(false);
+  const [category, setCategory] = useState<any>(null);
   const [offerTypes, setOfferTypes] = useState<OfferType[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [wasSubmitted, setWasSubmitted] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [success, setSuccess] = useState<boolean | null>(null);
+  const [categoryPath, setCategoryPath] = useState<Category[]>([]); // ← новый стейт
 
   const [values, setValues] = useState<OfferFormValues>({
     hasEndDate: false,
@@ -165,22 +169,31 @@ export default function OfferForm() {
           <FieldError message={wasSubmitted ? errors.description : undefined} />
         </div>
 
-        {/* Тип предложения */}
+        <div>
+          <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+            <Shapes className="w-4 h-4 text-blue-500" />
+            Категория товара/услуги <RequiredMark />
+          </label>
+          <Button onClick={() => setModalOpen(true)}>
+            {categoryPath.length > 0
+              ? categoryPath.map(c => c.name).join(" / ")
+              : "Выбрать категорию"}
+          </Button>
+        </div>
+
         <div>
           <SelectField
-            label={
-              <>
-                Тип предложения <RequiredMark />
-              </>
-            }
+            label={<>Тип предложения <RequiredMark /></>}
             icon={<Shapes className="w-4 h-4 text-blue-500" />}
             placeholder="Выберите тип"
             value={values.offerType}
             onChange={(val) => handleChange("offerType", val)}
             options={offerTypes.map((t) => ({
               value: t.code,
-              label: t.name,
-              description: t.description,
+              label: <>
+                <div>{t.name}</div>
+                <div className="text-sm text-gray-500 mt-1">Пример: {t.description}</div>
+              </>
             }))}
           />
           <FieldError message={wasSubmitted ? errors.offerType : undefined} />
@@ -206,11 +219,10 @@ export default function OfferForm() {
                     key={label}
                     type="button"
                     onClick={() => handleChange("hasMinPrice", val)}
-                    className={`inline-flex items-center justify-center px-3 py-2 text-sm font-medium rounded-md border transition ${
-                      active
-                        ? "bg-blue-600 text-white border-blue-600"
-                        : "border-gray-300 text-gray-700 hover:bg-gray-50"
-                    }`}
+                    className={`inline-flex items-center justify-center px-3 py-2 text-sm font-medium rounded-md border transition ${active
+                      ? "bg-blue-600 text-white border-blue-600"
+                      : "border-gray-300 text-gray-700 hover:bg-gray-50"
+                      }`}
                   >
                     {label}
                   </button>
@@ -251,11 +263,10 @@ export default function OfferForm() {
                     key={label}
                     type="button"
                     onClick={() => handleChange("hasConditions", val)}
-                    className={`inline-flex items-center justify-center px-3 py-2 text-sm font-medium rounded-md border transition ${
-                      active
-                        ? "bg-blue-600 text-white border-blue-600"
-                        : "border-gray-300 text-gray-700 hover:bg-gray-50"
-                    }`}
+                    className={`inline-flex items-center justify-center px-3 py-2 text-sm font-medium rounded-md border transition ${active
+                      ? "bg-blue-600 text-white border-blue-600"
+                      : "border-gray-300 text-gray-700 hover:bg-gray-50"
+                      }`}
                   >
                     {label}
                   </button>
@@ -296,11 +307,10 @@ export default function OfferForm() {
                     type="button"
                     onClick={() => handleChange("hasEndDate", val)}
                     className={`inline-flex items-center justify-center px-3 py-2 text-sm font-medium rounded-md border transition
-            ${
-              active
-                ? "bg-blue-600 text-white border-blue-600"
-                : "border-gray-300 text-gray-700 hover:bg-gray-50"
-            }`}
+            ${active
+                        ? "bg-blue-600 text-white border-blue-600"
+                        : "border-gray-300 text-gray-700 hover:bg-gray-50"
+                      }`}
                   >
                     {label}
                   </button>
@@ -346,8 +356,6 @@ export default function OfferForm() {
           </div>
         </div>
       </div>
-
-      {/* ===== Срок действия ===== */}
 
       {/* ===== Постеры ===== */}
       <div className="space-y-2">
@@ -396,11 +404,10 @@ export default function OfferForm() {
 
         {message && (
           <div
-            className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm ${
-              success
-                ? "bg-green-50 text-green-700 border border-green-200"
-                : "bg-red-50 text-red-700 border border-red-200"
-            }`}
+            className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm ${success
+              ? "bg-green-50 text-green-700 border border-green-200"
+              : "bg-red-50 text-red-700 border border-red-200"
+              }`}
           >
             {success ? (
               <CheckCircle2 className="w-4 h-4 text-green-500" />
@@ -411,6 +418,17 @@ export default function OfferForm() {
           </div>
         )}
       </div>
+
+      <CategorySelectorModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        onSelect={(cat, fullPath) => {
+          setCategory(cat);
+          setCategoryPath(fullPath);
+        }}
+        initialCategoryPath={categoryPath}
+        selectedCategoryId={category?.id || null}
+      />
     </form>
   );
 }

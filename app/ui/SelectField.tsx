@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 
 export type SelectOption = {
   value: string;
-  label: string;
+  label: string | React.ReactNode;
   description?: string;
 };
 
