@@ -14,31 +14,50 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Скидки и акции рядом — находи выгодные предложения от бизнеса",
+  title: "Zhenildik.kz — все скидки и акции Казахстана в одном месте",
   description:
-    "Платформа, где бизнесы размещают свои акции и скидки, а пользователи находят выгодные предложения поблизости. Экономь и продавай больше.",
+    "Zhenildik.kz — единый каталог выгодных предложений Казахстана. Находи акции, скидки, бонусы и промо-акции рядом с тобой: рестораны, магазины, салоны, техника и многое другое.",
   keywords: [
-    "скидки",
-    "акции",
-    "купоны",
-    "выгодные покупки",
-    "казахстан",
+    "Zhenildik.kz",
+    "скидки Казахстан",
+    "акции Казахстан",
+    "купоны Казахстан",
+    "скидки в Астане",
+    "скидки в Алматы",
+    "акции супермаркетов",
     "распродажа",
-    "бизнес",
-    "реклама",
+    "бонусы",
+    "промокоды",
+    "выгодные предложения",
+    "каталог акций",
   ],
   openGraph: {
-    title: "Скидки и акции рядом — выгодно покупай, больше продавай",
-    description: "Находи акции и скидки от местных бизнесов, экономь каждый день.",
-    url: "https://example.kz",
-    siteName: "OneDeal",
+    title: "Zhenildik.kz — каталог скидок и акций Казахстана",
+    description:
+      "Все акции и скидки Казахстана — на одном сайте. Еда, красота, одежда, медицина, техника и многое другое. Экономь каждый день с Zhenildik.kz!",
+    url: "https://zhenildik.kz",
+    siteName: "Zhenildik.kz",
     locale: "ru_RU",
     type: "website",
+    images: [
+      {
+        url: "https://zhenildik.kz/og-image.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Zhenildik.kz — каталог скидок и акций Казахстана",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Скидки и акции рядом",
-    description: "Находи акции и скидки поблизости — экономь каждый день.",
+    title: "Zhenildik.kz — все скидки и акции Казахстана",
+    description:
+      "Находи акции, скидки и бонусы рядом с тобой. Zhenildik.kz — живи выгодно!",
+    images: ["https://zhenildik.kz/og-image.jpg"],
+  },
+  metadataBase: new URL("https://zhenildik.kz"),
+  alternates: {
+    canonical: "https://zhenildik.kz",
   },
 };
 
@@ -49,12 +68,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ru">
-      <body suppressHydrationWarning
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50 text-gray-900`}
+      <body
+        suppressHydrationWarning
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50 text-gray-900 w-full`}
       >
-        <AppClientLayout>
-          {children}
-        </AppClientLayout>
+        <AppClientLayout>{children}</AppClientLayout>
       </body>
     </html>
   );

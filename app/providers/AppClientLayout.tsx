@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -7,43 +7,69 @@ import AppFooter from "../components/AppFooter";
 import MobileSidebar from "../components/MobileSidebar";
 
 export default function AppClientLayout({
-    children,
+  children,
 }: {
-    children: React.ReactNode;
+  children: React.ReactNode;
 }) {
-    const router = useRouter();
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const [userRole, setUserRole] = useState<"user" | "business" | null>(null);
-    const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const router = useRouter();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
 
-    useEffect(() => {
-        const storedUser = localStorage.getItem("user");
-        if (storedUser) {
-            const parsed = JSON.parse(storedUser);
-            setIsAuthenticated(true);
-            setUserRole(parsed.role);
+  // ✅ Проверяем токен при монтировании
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    const checkAuth = async () => {
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/user/me`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!res.ok) {
+          // токен невалидный
+          localStorage.removeItem("token");
+          setIsAuthenticated(false);
+          setUser(null);
+          return;
         }
-    }, []);
 
-    const handleLogout = () => {
-        localStorage.removeItem("user");
-        setIsAuthenticated(false);
-        setUserRole(null);
-        router.push("/");
+        const data = await res.json();
+        setIsAuthenticated(true);
+        setUser(data);
+      } catch (err) {
+        console.error("Ошибка проверки токена:", err);
+        localStorage.removeItem("token");
+      }
     };
 
-    return (
-        <div className="flex flex-col min-h-screen relative">
-            <AppHeader onOpenMobileMenu={() => setShowMobileMenu(true)} />
-            <main className="flex-grow">{children}</main>
-            <AppFooter />
-            <MobileSidebar
-                isOpen={showMobileMenu}
-                onClose={() => setShowMobileMenu(false)}
-                isAuthenticated={isAuthenticated}
-                userRole={userRole}
-                onLogout={handleLogout}
-            />
-        </div>
-    );
+    checkAuth();
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    setIsAuthenticated(false);
+    setUser(null);
+    router.push("/");
+  };
+
+  return (
+    <main className="flex flex-col min-h-screen relative bg-transparent">
+      <AppHeader onOpenMobileMenu={() => setShowMobileMenu(true)} />
+
+      <div className="flex-grow bg-gray-50">{children}</div>
+
+      <AppFooter />
+
+      <MobileSidebar
+        isOpen={showMobileMenu}
+        onClose={() => setShowMobileMenu(false)}
+        isAuthenticated={isAuthenticated}
+        onLogout={handleLogout}
+      />
+    </main>
+  );
 }

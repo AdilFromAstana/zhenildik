@@ -1,11 +1,11 @@
-// src/app/components/AppFooter.tsx
+import Link from 'next/link';
 import React from 'react';
 
 const AppFooter: React.FC = () => (
-    <footer className="bg-gray-800 text-white mt-12">
+    <footer className="bg-gray-800 text-white">
         <div className="container mx-auto px-4 py-8 text-center text-sm md:flex md:justify-around md:text-left">
             <div className="mb-4 md:mb-0">
-                <h3 className="text-xl font-bold mb-2 text-blue-400">iAkcii</h3>
+                <Link href="/" className="text-xl font-bold mb-2 text-blue-400">iAkcii</Link>
                 <p className="text-gray-400">Лучшие скидки и акции Казахстана.</p>
             </div>
             <div className="space-y-2">
