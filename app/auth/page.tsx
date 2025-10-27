@@ -16,7 +16,7 @@ export default function AuthPage() {
 
   const handleLoginSuccess = (token: string) => {
     localStorage.setItem("token", token);
-    router.push("/add-deal");
+    router.push("/add-offer");
   };
 
   const handleNeedRegister = (email: string, pass: string) => {

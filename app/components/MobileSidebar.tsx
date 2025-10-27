@@ -55,8 +55,8 @@ export default function MobileSidebar({
     ...(isAuthenticated
       ? [
           { label: "Мой профиль", icon: User, path: "/profile" },
-          { label: "Мои акции", icon: Briefcase, path: "/my-deals" },
-          { label: "Создать акцию", icon: PlusCircle, path: "/add-deal" },
+          { label: "Мои акции", icon: Briefcase, path: "/my-offers" },
+          { label: "Создать акцию", icon: PlusCircle, path: "/add-offer" },
         ]
       : []),
   ];

@@ -1,5 +1,6 @@
-import { PlusCircle, CheckCircle2 } from "lucide-react";
+import { PlusCircle } from "lucide-react";
 import OfferForm from "./component/OfferForm";
+// import OfferForm from "./component/OfferForm";
 
 export const metadata = {
   title: "Новая акция | Admin",
