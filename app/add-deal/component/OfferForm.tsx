@@ -114,16 +114,86 @@ export default function OfferForm() {
     setMessage(null);
     setSuccess(null);
     setWasSubmitted(true);
+
     if (!isValid(values)) return;
 
     try {
       setSubmitting(true);
-      await new Promise((r) => setTimeout(r, 800));
+
+      const formData = new FormData();
+
+      // 🔹 Основные поля
+      formData.append("title", values.title);
+      formData.append("description", values.description);
+
+      // вместо offerType → offerTypeCode
+      const offerType = offerTypes.find((t) => t.code === values.offerType);
+      if (offerType) formData.append("offerTypeCode", String(offerType.code)); // 👈 если id = code, иначе поменяй на id
+
+      // булевы значения: передаём как 1/0, сервер приведёт к boolean
+      formData.append("hasMinPrice", values.hasMinPrice ? "true" : "false");
+      formData.append("hasConditions", values.hasConditions ? "true" : "false");
+      formData.append("hasEndDate", values.hasEndDate ? "true" : "false");
+
+      if (values.hasMinPrice)
+        formData.append("minPrice", values.minPrice || "0");
+      if (values.hasConditions)
+        formData.append("conditions", values.conditions || "");
+      if (values.hasEndDate) {
+        formData.append("startDate", values.startDate);
+        formData.append("endDate", values.endDate);
+      }
+
+      // Категория (id числом)
+      if (category?.id) {
+        formData.append("categoryId", String(category.id));
+      }
+
+      // Файлы
+      values.posters.forEach((file) => {
+        formData.append("posters", file);
+      });
+
+      // JWT токен
+      const token = localStorage.getItem("token");
+
+      const res = await fetch("http://localhost:5000/offers", {
+        method: "POST",
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const err = await res.text();
+        throw new Error(err || "Ошибка при сохранении");
+      }
+
+      const data = await res.json();
+      console.log("✅ Успешно создано:", data);
+
       setSuccess(true);
       setMessage("✅ Предложение сохранено!");
-    } catch {
+
+      // Очистим форму
+      setValues({
+        hasEndDate: false,
+        title: "",
+        description: "",
+        offerType: "",
+        hasMinPrice: false,
+        minPrice: "",
+        hasConditions: false,
+        conditions: "",
+        startDate: "",
+        endDate: "",
+        posters: [],
+      });
+      setCategory(null);
+      setCategoryPath([]);
+    } catch (err: any) {
+      console.error(err);
       setSuccess(false);
-      setMessage("❌ Ошибка при сохранении");
+      setMessage(err.message || "❌ Ошибка при сохранении");
     } finally {
       setSubmitting(false);
     }
@@ -176,24 +246,32 @@ export default function OfferForm() {
           </label>
           <Button onClick={() => setModalOpen(true)}>
             {categoryPath.length > 0
-              ? categoryPath.map(c => c.name).join(" / ")
+              ? categoryPath.map((c) => c.name).join(" / ")
               : "Выбрать категорию"}
           </Button>
         </div>
 
         <div>
           <SelectField
-            label={<>Тип предложения <RequiredMark /></>}
+            label={
+              <>
+                Тип предложения <RequiredMark />
+              </>
+            }
             icon={<Shapes className="w-4 h-4 text-blue-500" />}
             placeholder="Выберите тип"
             value={values.offerType}
             onChange={(val) => handleChange("offerType", val)}
             options={offerTypes.map((t) => ({
               value: t.code,
-              label: <>
-                <div>{t.name}</div>
-                <div className="text-sm text-gray-500 mt-1">Пример: {t.description}</div>
-              </>
+              label: (
+                <>
+                  <div>{t.name}</div>
+                  <div className="text-sm text-gray-500 mt-1">
+                    Пример: {t.description}
+                  </div>
+                </>
+              ),
             }))}
           />
           <FieldError message={wasSubmitted ? errors.offerType : undefined} />
@@ -219,10 +297,11 @@ export default function OfferForm() {
                     key={label}
                     type="button"
                     onClick={() => handleChange("hasMinPrice", val)}
-                    className={`inline-flex items-center justify-center px-3 py-2 text-sm font-medium rounded-md border transition ${active
-                      ? "bg-blue-600 text-white border-blue-600"
-                      : "border-gray-300 text-gray-700 hover:bg-gray-50"
-                      }`}
+                    className={`inline-flex items-center justify-center px-3 py-2 text-sm font-medium rounded-md border transition ${
+                      active
+                        ? "bg-blue-600 text-white border-blue-600"
+                        : "border-gray-300 text-gray-700 hover:bg-gray-50"
+                    }`}
                   >
                     {label}
                   </button>
@@ -263,10 +342,11 @@ export default function OfferForm() {
                     key={label}
                     type="button"
                     onClick={() => handleChange("hasConditions", val)}
-                    className={`inline-flex items-center justify-center px-3 py-2 text-sm font-medium rounded-md border transition ${active
-                      ? "bg-blue-600 text-white border-blue-600"
-                      : "border-gray-300 text-gray-700 hover:bg-gray-50"
-                      }`}
+                    className={`inline-flex items-center justify-center px-3 py-2 text-sm font-medium rounded-md border transition ${
+                      active
+                        ? "bg-blue-600 text-white border-blue-600"
+                        : "border-gray-300 text-gray-700 hover:bg-gray-50"
+                    }`}
                   >
                     {label}
                   </button>
@@ -307,10 +387,11 @@ export default function OfferForm() {
                     type="button"
                     onClick={() => handleChange("hasEndDate", val)}
                     className={`inline-flex items-center justify-center px-3 py-2 text-sm font-medium rounded-md border transition
-            ${active
-                        ? "bg-blue-600 text-white border-blue-600"
-                        : "border-gray-300 text-gray-700 hover:bg-gray-50"
-                      }`}
+            ${
+              active
+                ? "bg-blue-600 text-white border-blue-600"
+                : "border-gray-300 text-gray-700 hover:bg-gray-50"
+            }`}
                   >
                     {label}
                   </button>
@@ -364,9 +445,10 @@ export default function OfferForm() {
           Загрузка постеров
         </label>
 
+        {/* Поле выбора файлов */}
         <label
           htmlFor="posterUpload"
-          className="flex flex-col items-center justify-center w-full border-2 border-dashed border-blue-300 rounded-md p-4 text-center hover:bg-blue-50 transition"
+          className="flex flex-col items-center justify-center w-full border-2 border-dashed border-blue-300 rounded-md p-4 text-center hover:bg-blue-50 transition cursor-pointer"
         >
           <ImageIcon className="w-8 h-8 text-blue-500 mb-2" />
           <span className="text-sm text-blue-600">
@@ -378,11 +460,47 @@ export default function OfferForm() {
             multiple
             accept="image/*"
             className="hidden"
-            onChange={(e) =>
-              handleChange("posters", Array.from(e.target.files || []))
-            }
+            onChange={(e) => {
+              const newFiles = Array.from(e.target.files || []);
+              handleChange("posters", [...values.posters, ...newFiles]);
+            }}
           />
         </label>
+
+        {/* Предпросмотр изображений */}
+        {values.posters.length > 0 && (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mt-3">
+            {values.posters.map((file, index) => {
+              const previewUrl = URL.createObjectURL(file);
+              return (
+                <div
+                  key={index}
+                  className="relative group border border-gray-200 rounded-lg overflow-hidden"
+                >
+                  <img
+                    src={previewUrl}
+                    alt={`poster-${index}`}
+                    className="w-full h-32 object-cover"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const updated = values.posters.filter(
+                        (_, i) => i !== index
+                      );
+                      handleChange("posters", updated);
+                      URL.revokeObjectURL(previewUrl);
+                    }}
+                    className="absolute top-1 right-1 bg-black/60 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition"
+                    title="Удалить"
+                  >
+                    ✕
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* ===== Submit ===== */}
@@ -404,10 +522,11 @@ export default function OfferForm() {
 
         {message && (
           <div
-            className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm ${success
-              ? "bg-green-50 text-green-700 border border-green-200"
-              : "bg-red-50 text-red-700 border border-red-200"
-              }`}
+            className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm ${
+              success
+                ? "bg-green-50 text-green-700 border border-green-200"
+                : "bg-red-50 text-red-700 border border-red-200"
+            }`}
           >
             {success ? (
               <CheckCircle2 className="w-4 h-4 text-green-500" />
