@@ -1,7 +1,7 @@
-// app/components/offer-form/OfferForm.tsx
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
+import axiosInstance from "@/lib/axiosInstance";
 import CategorySelectorModal from "../CategorySelectorModal";
 import BasicInfoSection from "./BasicInfoSection";
 import PriceSection from "./PriceSection";
@@ -11,42 +11,142 @@ import PosterUploadSection from "./PosterUploadSection";
 import SubmitSection from "./SubmitSection";
 
 export type OfferFormValues = {
-    title: string;
-    description: string;
-    offerType: string;
-    hasMinPrice: boolean;
-    minPrice: string;
-    hasConditions: boolean;
-    conditions: string;
-    hasEndDate: boolean;
-    startDate: string;
-    endDate: string;
-    posters: File[];
+  title: string;
+  description: string;
+  offerType: string;
+  hasMinPrice: boolean;
+  minPrice: string;
+  hasConditions: boolean;
+  conditions: string;
+  hasEndDate: boolean;
+  startDate: string;
+  endDate: string;
+  posters: File[];
 };
 
 export type OfferType = {
-    code: string;
-    name: string;
-    description: string;
-    is_active: boolean;
+  code: string;
+  name: string;
+  description: string;
+  is_active: boolean;
 };
 
 export type OfferFormChangeHandler = <K extends keyof OfferFormValues>(
-    field: K,
-    value: OfferFormValues[K]
+  field: K,
+  value: OfferFormValues[K]
 ) => void;
 
 export default function OfferForm() {
-    const [modalOpen, setModalOpen] = useState(false);
-    const [category, setCategory] = useState<any>(null);
-    const [offerTypes, setOfferTypes] = useState<OfferType[]>([]);
-    const [submitting, setSubmitting] = useState(false);
-    const [wasSubmitted, setWasSubmitted] = useState(false);
-    const [message, setMessage] = useState<string | null>(null);
-    const [success, setSuccess] = useState<boolean | null>(null);
-    const [categoryPath, setCategoryPath] = useState<any[]>([]);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [category, setCategory] = useState<any>(null);
+  const [offerTypes, setOfferTypes] = useState<OfferType[]>([]);
+  const [submitting, setSubmitting] = useState(false);
+  const [wasSubmitted, setWasSubmitted] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+  const [success, setSuccess] = useState<boolean | null>(null);
+  const [categoryPath, setCategoryPath] = useState<any[]>([]);
 
-    const [values, setValues] = useState<OfferFormValues>({
+  const [values, setValues] = useState<OfferFormValues>({
+    hasEndDate: false,
+    title: "",
+    description: "",
+    offerType: "",
+    hasMinPrice: false,
+    minPrice: "",
+    hasConditions: false,
+    conditions: "",
+    startDate: "",
+    endDate: "",
+    posters: [],
+  });
+
+  // --- Загрузка типов предложений ---
+  useEffect(() => {
+    const fetchTypes = async () => {
+      try {
+        const { data } = await axiosInstance.get<OfferType[]>("/offer-types");
+        setOfferTypes(data.filter((t) => t.is_active));
+      } catch (err) {
+        console.error("Ошибка загрузки типов:", err);
+      }
+    };
+    fetchTypes();
+  }, []);
+
+  // --- Валидация ---
+  function validate(v: OfferFormValues) {
+    const e: Record<string, string> = {};
+    if (!v.title.trim()) e.title = "Введите название";
+    if (!v.description.trim()) e.description = "Введите описание";
+    if (!v.offerType) e.offerType = "Выберите тип предложения";
+    if (v.hasMinPrice && (!v.minPrice.trim() || isNaN(Number(v.minPrice))))
+      e.minPrice = "Укажите корректную цену";
+    if (v.hasConditions && !v.conditions.trim())
+      e.conditions = "Укажите условия";
+    if (v.hasEndDate) {
+      if (!v.startDate) e.startDate = "Укажите дату начала";
+      if (!v.endDate) e.endDate = "Укажите дату окончания";
+      if (v.startDate && v.endDate && v.startDate > v.endDate) {
+        e.endDate = "Дата окончания не может быть раньше начала";
+      }
+    }
+    return e;
+  }
+
+  const errors = useMemo(() => validate(values), [values]);
+  const isValid = (v: OfferFormValues) => Object.keys(validate(v)).length === 0;
+
+  const handleChange: OfferFormChangeHandler = (field, val) => {
+    setValues((prev) => ({ ...prev, [field]: val }));
+  };
+
+  // --- Отправка формы ---
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setMessage(null);
+    setSuccess(null);
+    setWasSubmitted(true);
+
+    if (!isValid(values)) return;
+
+    try {
+      setSubmitting(true);
+
+      // Формируем объект данных (без FormData)
+      const payload: any = {
+        title: values.title,
+        description: values.description,
+        offerTypeCode: values.offerType,
+        hasMinPrice: values.hasMinPrice,
+        hasConditions: values.hasConditions,
+        hasEndDate: values.hasEndDate,
+      };
+
+      if (values.hasMinPrice) payload.minPrice = values.minPrice;
+      if (values.hasConditions) payload.conditions = values.conditions;
+      if (values.hasEndDate) {
+        payload.startDate = values.startDate;
+        payload.endDate = values.endDate;
+      }
+      if (category?.id) payload.categoryId = category.id;
+
+      // Чтобы отправить файлы, используем multipart/form-data:
+      const formData = new FormData();
+      Object.entries(payload).forEach(([key, val]) => {
+        formData.append(key, String(val));
+      });
+      values.posters.forEach((file) => formData.append("posters", file));
+
+      const { data } = await axiosInstance.post("/offers", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      console.log("✅ Успешно создано:", data);
+      setSuccess(true);
+      setMessage("Предложение сохранено!");
+
+      // Сброс
+      setValues({
         hasEndDate: false,
         title: "",
         description: "",
@@ -58,203 +158,83 @@ export default function OfferForm() {
         startDate: "",
         endDate: "",
         posters: [],
-    });
-
-    // Загрузка типов
-    useEffect(() => {
-        const fetchTypes = async () => {
-            try {
-                const res = await fetch("http://localhost:5000/offer-types");
-                const data = await res.json();
-                setOfferTypes(data.filter((t: OfferType) => t.is_active));
-            } catch (e) {
-                console.error(e);
-            }
-        };
-        fetchTypes();
-    }, []);
-
-    function validate(v: OfferFormValues) {
-        const e: Record<string, string> = {};
-        if (!v.title.trim()) e.title = "Введите название";
-        if (!v.description.trim()) e.description = "Введите описание";
-        if (!v.offerType) e.offerType = "Выберите тип предложения";
-        if (v.hasMinPrice && (!v.minPrice.trim() || isNaN(Number(v.minPrice))))
-            e.minPrice = "Укажите корректную цену";
-        if (v.hasConditions && !v.conditions.trim())
-            e.conditions = "Укажите условия";
-
-        if (v.hasEndDate) {
-            if (!v.startDate) e.startDate = "Укажите дату начала";
-            if (!v.endDate) e.endDate = "Укажите дату окончания";
-            if (v.startDate && v.endDate && v.startDate > v.endDate) {
-                e.endDate = "Дата окончания не может быть раньше начала";
-            }
-        }
-        return e;
+      });
+      setCategory(null);
+      setCategoryPath([]);
+    } catch (err: any) {
+      console.error(err);
+      setSuccess(false);
+      setMessage(err?.response?.data?.message || "Ошибка при сохранении");
+    } finally {
+      setSubmitting(false);
     }
+  }
 
-    const errors = useMemo(() => validate(values), [values]);
+  const submitDisabled = submitting || !isValid(values);
 
-    function isValid(v: OfferFormValues) {
-        return Object.keys(validate(v)).length === 0;
-    }
+  return (
+    <form
+      onSubmit={handleSubmit}
+      className="w-full space-y-8 md:p-8 md:bg-white md:border md:border-gray-200 md:shadow-sm md:rounded-xl"
+    >
+      <BasicInfoSection
+        title={values.title}
+        description={values.description}
+        offerType={values.offerType}
+        categoryPath={categoryPath}
+        offerTypes={offerTypes}
+        errors={errors}
+        wasSubmitted={wasSubmitted}
+        onChange={handleChange}
+        onOpenCategoryModal={() => setModalOpen(true)}
+      />
 
-    function handleChange<T extends keyof OfferFormValues>(
-        field: T,
-        val: OfferFormValues[T]
-    ) {
-        setValues((prev) => ({ ...prev, [field]: val }));
-    }
+      <div className="space-y-6">
+        <div className="grid gap-4 md:grid-cols-2">
+          <PriceSection
+            hasMinPrice={values.hasMinPrice}
+            minPrice={values.minPrice}
+            errors={errors}
+            wasSubmitted={wasSubmitted}
+            onChange={handleChange}
+          />
+          <ConditionsSection
+            hasConditions={values.hasConditions}
+            conditions={values.conditions}
+            errors={errors}
+            wasSubmitted={wasSubmitted}
+            onChange={handleChange}
+          />
+          <DateRangeSection
+            hasEndDate={values.hasEndDate}
+            startDate={values.startDate}
+            endDate={values.endDate}
+            errors={errors}
+            wasSubmitted={wasSubmitted}
+            onChange={handleChange}
+          />
+        </div>
+      </div>
 
-    async function handleSubmit(e: React.FormEvent) {
-        e.preventDefault();
-        setMessage(null);
-        setSuccess(null);
-        setWasSubmitted(true);
+      <PosterUploadSection posters={values.posters} onChange={handleChange} />
 
-        if (!isValid(values)) return;
+      <SubmitSection
+        submitting={submitting}
+        submitDisabled={submitDisabled}
+        message={message}
+        success={success}
+      />
 
-        try {
-            setSubmitting(true);
-
-            const formData = new FormData();
-            formData.append("title", values.title);
-            formData.append("description", values.description);
-
-            const offerType = offerTypes.find((t) => t.code === values.offerType);
-            if (offerType) formData.append("offerTypeCode", String(offerType.code));
-
-            formData.append("hasMinPrice", values.hasMinPrice ? "1" : "0");
-            formData.append("hasConditions", values.hasConditions ? "1" : "0");
-            formData.append("hasEndDate", values.hasEndDate ? "1" : "0");
-
-            if (values.hasMinPrice) formData.append("minPrice", values.minPrice || "0");
-            if (values.hasConditions) formData.append("conditions", values.conditions || "");
-            if (values.hasEndDate) {
-                formData.append("startDate", values.startDate);
-                formData.append("endDate", values.endDate);
-            }
-
-            if (category?.id) {
-                formData.append("categoryId", String(category.id));
-            }
-
-            values.posters.forEach((file) => {
-                formData.append("posters", file);
-            });
-
-            const token = localStorage.getItem("token");
-
-            const res = await fetch("http://localhost:5000/offers", {
-                method: "POST",
-                headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-                body: formData,
-            });
-
-            if (!res.ok) {
-                const err = await res.text();
-                throw new Error(err || "Ошибка при сохранении");
-            }
-
-            const data = await res.json();
-            console.log("✅ Успешно создано:", data);
-
-            setSuccess(true);
-            setMessage("Предложение сохранено!");
-
-            setValues({
-                hasEndDate: false,
-                title: "",
-                description: "",
-                offerType: "",
-                hasMinPrice: false,
-                minPrice: "",
-                hasConditions: false,
-                conditions: "",
-                startDate: "",
-                endDate: "",
-                posters: [],
-            });
-            setCategory(null);
-            setCategoryPath([]);
-        } catch (err: any) {
-            console.error(err);
-            setSuccess(false);
-            setMessage(err.message || "❌ Ошибка при сохранении");
-        } finally {
-            setSubmitting(false);
-        }
-    }
-
-    const submitDisabled = submitting || !isValid(values);
-
-    return (
-        <form
-            onSubmit={handleSubmit}
-            className="w-full space-y-8 md:p-8 md:bg-white md:border md:border-gray-200 md:shadow-sm md:rounded-xl"
-        >
-            <BasicInfoSection
-                title={values.title}
-                description={values.description}
-                offerType={values.offerType}
-                categoryPath={categoryPath}
-                offerTypes={offerTypes}
-                errors={errors}
-                wasSubmitted={wasSubmitted}
-                onChange={handleChange}
-                onOpenCategoryModal={() => setModalOpen(true)}
-            />
-
-            <div className="space-y-6">
-                <div className="grid gap-4 md:grid-cols-2">
-                    <PriceSection
-                        hasMinPrice={values.hasMinPrice}
-                        minPrice={values.minPrice}
-                        errors={errors}
-                        wasSubmitted={wasSubmitted}
-                        onChange={handleChange}
-                    />
-                    <ConditionsSection
-                        hasConditions={values.hasConditions}
-                        conditions={values.conditions}
-                        errors={errors}
-                        wasSubmitted={wasSubmitted}
-                        onChange={handleChange}
-                    />
-                    <DateRangeSection
-                        hasEndDate={values.hasEndDate}
-                        startDate={values.startDate}
-                        endDate={values.endDate}
-                        errors={errors}
-                        wasSubmitted={wasSubmitted}
-                        onChange={handleChange}
-                    />
-                </div>
-            </div>
-
-            <PosterUploadSection
-                posters={values.posters}
-                onChange={handleChange}
-            />
-
-            <SubmitSection
-                submitting={submitting}
-                submitDisabled={submitDisabled}
-                message={message}
-                success={success}
-            />
-
-            <CategorySelectorModal
-                open={modalOpen}
-                onClose={() => setModalOpen(false)}
-                onSelect={(cat, fullPath) => {
-                    setCategory(cat);
-                    setCategoryPath(fullPath);
-                }}
-                initialCategoryPath={categoryPath}
-                selectedCategoryId={category?.id || null}
-            />
-        </form>
-    );
+      <CategorySelectorModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        onSelect={(cat, fullPath) => {
+          setCategory(cat);
+          setCategoryPath(fullPath);
+        }}
+        initialCategoryPath={categoryPath}
+        selectedCategoryId={category?.id || null}
+      />
+    </form>
+  );
 }
