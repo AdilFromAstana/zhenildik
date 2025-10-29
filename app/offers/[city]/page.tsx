@@ -25,7 +25,7 @@ export async function generateMetadata({
   };
 }
 
-export default async function AllDealsCityPage({
+export default async function AllOffersByCityPage({
   params,
 }: {
   params: Promise<{ city: string }>;

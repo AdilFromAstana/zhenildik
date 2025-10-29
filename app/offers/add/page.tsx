@@ -5,7 +5,7 @@ export const metadata = {
   title: "Новая акция | Admin",
 };
 
-export default function NewDealPage() {
+export default function NewOfferPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 text-gray-900 px-4 py-8 sm:py-10">
       <div className="mx-auto w-full max-w-4xl bg-white/60 backdrop-blur-[2px] md:bg-white md:border md:border-gray-200 md:shadow-sm md:rounded-xl md:p-8 md:pt-6 space-y-8">

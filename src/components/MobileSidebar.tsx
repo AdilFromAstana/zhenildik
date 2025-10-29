@@ -42,7 +42,7 @@ export default function MobileSidebar({
   const goTo = (path: string) => {
     if (path === "/all-offers") {
       const city = localStorage.getItem("selectedCity") || "astana";
-      router.push(`/all-offers/${city}`);
+      router.push(`/offers/${city}`);
     } else {
       router.push(path);
     }
@@ -55,8 +55,8 @@ export default function MobileSidebar({
     ...(isAuthenticated
       ? [
           { label: "Мой профиль", icon: User, path: "/profile" },
-          { label: "Мои акции", icon: Briefcase, path: "/my-offers" },
-          { label: "Создать акцию", icon: PlusCircle, path: "/add-offer" },
+          { label: "Мои акции", icon: Briefcase, path: "/offers/my" },
+          { label: "Создать акцию", icon: PlusCircle, path: "/offers/add" },
         ]
       : []),
   ];

@@ -3,13 +3,12 @@ import { useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import { Offer } from "app/offers/my/page";
 import DrawMap from "@/components/DrawMap/DrawMap";
-import DealCard from "@/components/DealCard";
+import OfferCard from "@/components/OfferCard";
 
 const MobileMapButton = dynamic(() => import("@/components/MobileMapButton"), {
   ssr: false,
 });
 
-// 🔹 Вспомогательная функция для вычисления расстояния (в км)
 function haversineDistance([lat1, lon1]: number[], [lat2, lon2]: number[]) {
   const R = 6371; // радиус Земли в км
   const toRad = (x: number) => (x * Math.PI) / 180;
@@ -114,15 +113,14 @@ export default function OffersList({ offers = [], total }: OffersListProps) {
           )}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {sortedOffers.map((deal: any) => (
-              <DealCard
-                key={deal.id}
-                deal={deal}
-                onDetailClick={() => {}}
-                // можно отобразить расстояние прямо на карточке:
+            {sortedOffers.map((offer: any) => (
+              <OfferCard
+                key={offer.id}
+                offer={offer}
+                onDetailClick={() => { }}
                 extraInfo={
-                  deal.nearestLocation && userCoords
-                    ? `${deal.nearestLocation.distanceKm.toFixed(1)} км`
+                  offer.nearestLocation && userCoords
+                    ? `${offer.nearestLocation.distanceKm.toFixed(1)} км`
                     : undefined
                 }
               />

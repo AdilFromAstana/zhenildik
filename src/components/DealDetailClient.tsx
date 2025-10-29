@@ -3,7 +3,7 @@
 import React from "react";
 import { ChevronLeft, Star, Calendar, Clock, MapPin, HandCoins, Phone, Globe } from "lucide-react";
 import { Deal } from "../types";
-import DealCard from "./DealCard";
+import DealCard from "./OfferCard";
 import { mockDeals } from "../../app/data/mocks";
 
 interface DealDetailClientProps {
@@ -128,8 +128,8 @@ const DealDetailClient: React.FC<DealDetailClientProps> = ({ deal }) => {
                             Похожие акции
                         </h2>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {similarDeals.map((deal) => (
-                                <DealCard key={deal.id} deal={deal} onDetailClick={() => { }} />
+                            {similarDeals.map((offer) => (
+                                <DealCard key={offer.id} offer={offer} onDetailClick={() => { }} />
                             ))}
                         </div>
                     </section>

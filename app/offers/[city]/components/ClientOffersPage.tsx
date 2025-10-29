@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import DealsList from "./OffersList";
+import OffersList from "./OffersList";
 import MobileFiltersBar from "./MobileFiltersBar";
 import { Offer } from "app/offers/my/page";
 
@@ -52,7 +52,7 @@ export default function ClientOffersPage({
       {loading ? (
         <div className="text-center text-gray-500 py-10">Загрузка...</div>
       ) : (
-        <DealsList offers={offers} total={total} />
+        <OffersList offers={offers} total={total} />
       )}
     </>
   );

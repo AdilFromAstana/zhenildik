@@ -1,16 +1,16 @@
-// src/app/components/DealCard.tsx
+// src/app/components/OfferCard.tsx
 import React from "react";
-import { MapPin, Clock, Tag } from "lucide-react";
-import { Offer } from "../../app/offers/my/page";
+import { MapPin, Tag } from "lucide-react";
+import { Offer } from "app/offers/my/page";
 
-interface DealCardProps {
-  deal: Offer;
-  onDetailClick: (deal: Offer) => void;
-  extraInfo: any;
+interface OfferCardProps {
+  offer: Offer;
+  onDetailClick: (offer: Offer) => void;
+  extraInfo?: any;
 }
 
-const DealCard: React.FC<DealCardProps> = ({
-  deal,
+const OfferCard: React.FC<OfferCardProps> = ({
+  offer,
   onDetailClick,
   extraInfo,
 }) => {
@@ -21,20 +21,20 @@ const DealCard: React.FC<DealCardProps> = ({
   };
 
   const imageSrc =
-    deal.posters && deal.posters.length > 0
-      ? deal.posters[0]
+    offer.posters && offer.posters.length > 0
+      ? offer.posters[0]
       : "/images/placeholder.jpg";
 
   return (
     <div
       className="bg-white rounded-xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-xl cursor-pointer flex flex-col"
-      onClick={() => onDetailClick(deal)}
+      onClick={() => onDetailClick(offer)}
     >
       {/* Фото акции */}
       <div className="relative h-40 bg-gray-100">
         <img
           src={imageSrc}
-          alt={deal.title}
+          alt={offer.title}
           onError={handleImageError}
           className="w-full h-full object-cover object-center"
         />
@@ -43,15 +43,15 @@ const DealCard: React.FC<DealCardProps> = ({
       <div className="p-4 flex flex-col flex-grow">
         <div className="mb-2">
           <p className="text-sm text-gray-500 flex items-center gap-1">
-            {deal.category && (
+            {offer.category && (
               <>
-                <Tag className="w-3 h-3 text-gray-400" /> {deal.category.name}
+                <Tag className="w-3 h-3 text-gray-400" /> {offer.category.name}
               </>
             )}
           </p>
 
           <h3 className="font-semibold text-gray-800 text-lg mt-1 line-clamp-2">
-            {deal.title}
+            {offer.title}
           </h3>
         </div>
 
@@ -66,7 +66,7 @@ const DealCard: React.FC<DealCardProps> = ({
         <button
           onClick={(e) => {
             e.stopPropagation();
-            onDetailClick(deal);
+            onDetailClick(offer);
           }}
           className="mt-3 w-full py-2 text-center text-sm font-medium bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition"
         >
@@ -77,4 +77,4 @@ const DealCard: React.FC<DealCardProps> = ({
   );
 };
 
-export default DealCard;
+export default OfferCard;

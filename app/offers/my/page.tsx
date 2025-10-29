@@ -62,7 +62,7 @@ export default function OffersPage() {
     },
   });
 
-  const handleEdit = (id: number) => router.push(`/my-offers/${id}`);
+  const handleEdit = (id: number) => router.push(`/offers/my/${id}`);
 
   const filteredOffers =
     filter === "ALL" ? offers : offers.filter((o) => o.status === filter);

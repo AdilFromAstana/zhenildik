@@ -35,7 +35,6 @@ const FilterOverlay: React.FC<FilterOverlayProps> = ({ currentFilters, onApply, 
         setTempFilters(DEFAULT_FILTERS);
     };
 
-    // Импортируем applyFilters и mockDeals
     const { applyFilters, mockDeals } = require('../data/mocks');
     const filteredDealsCount = useMemo(() => {
         return applyFilters(mockDeals, tempFilters);

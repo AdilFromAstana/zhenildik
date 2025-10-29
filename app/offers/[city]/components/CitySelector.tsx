@@ -19,7 +19,7 @@ export default function CitySelector({
     cities.find((c) => c.slug === currentCity)?.name || currentCity;
 
   const handleSelect = (slug: string) => {
-    router.push(`/all-offers/${slug}`);
+    router.push(`/offers/${slug}`);
     setIsOpen(false);
   };
 
