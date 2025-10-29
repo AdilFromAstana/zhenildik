@@ -4,7 +4,7 @@ import React, { useState, useMemo } from 'react';
 import { FilterState } from '../types';
 import { X, Tag, SlidersHorizontal, MapPin, Percent, Clock } from 'lucide-react';
 import SelectFilter from './SelectFilter';
-import { categories } from '../../app/data/mocks'; // Импортируем категории
+import { categories } from '../data/mocks'; // Импортируем категории
 
 interface FilterOverlayProps {
     currentFilters: FilterState;

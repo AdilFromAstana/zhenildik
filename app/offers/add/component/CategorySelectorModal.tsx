@@ -90,7 +90,6 @@ export default function CategorySelectorModal({
     fetchCategories(parent?.id);
   };
 
-  // Формируем строку хлебных крошек для отображения в модалке (опционально)
   const breadcrumbText =
     breadcrumbs.length > 0
       ? breadcrumbs.map((b) => b.name).join(" / ") + " /"

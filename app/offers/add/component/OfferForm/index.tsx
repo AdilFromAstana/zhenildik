@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useMemo } from "react";
 import CategorySelectorModal from "../CategorySelectorModal";
+import CitySelectorModal from "../CitySelectorModal"; // ← новый импорт
 import BasicInfoSection from "./BasicInfoSection";
 import PriceSection from "./PriceSection";
 import ConditionsSection from "./ConditionsSection";
@@ -9,6 +10,7 @@ import DateRangeSection from "./DateRangeSection";
 import PosterUploadSection from "./PosterUploadSection";
 import SubmitSection from "./SubmitSection";
 import axiosInstance from "@/lib/axiosInstance";
+import { useRouter } from "next/navigation";
 
 export type OfferFormValues = {
   title: string;
@@ -37,14 +39,20 @@ export type OfferFormChangeHandler = <K extends keyof OfferFormValues>(
 ) => void;
 
 export default function OfferForm() {
+  const router = useRouter()
   const [modalOpen, setModalOpen] = useState(false);
+  const [modalCityOpen, setModalCityOpen] = useState(false); // ← модалка города
+
   const [category, setCategory] = useState<any>(null);
+  const [categoryPath, setCategoryPath] = useState<any[]>([]);
+
+  const [city, setCity] = useState<any>(null); // ← выбранный город
+
   const [offerTypes, setOfferTypes] = useState<OfferType[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [wasSubmitted, setWasSubmitted] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [success, setSuccess] = useState<boolean | null>(null);
-  const [categoryPath, setCategoryPath] = useState<any[]>([]);
 
   const [values, setValues] = useState<OfferFormValues>({
     hasEndDate: false,
@@ -73,7 +81,6 @@ export default function OfferForm() {
     fetchTypes();
   }, []);
 
-  // --- Валидация ---
   function validate(v: OfferFormValues) {
     const e: Record<string, string> = {};
     if (!v.title.trim()) e.title = "Введите название";
@@ -100,7 +107,6 @@ export default function OfferForm() {
     setValues((prev) => ({ ...prev, [field]: val }));
   };
 
-  // --- Отправка формы ---
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setMessage(null);
@@ -112,7 +118,6 @@ export default function OfferForm() {
     try {
       setSubmitting(true);
 
-      // Формируем объект данных (без FormData)
       const payload: any = {
         title: values.title,
         description: values.description,
@@ -129,8 +134,8 @@ export default function OfferForm() {
         payload.endDate = values.endDate;
       }
       if (category?.id) payload.categoryId = category.id;
+      if (city?.slug) payload.cityCode = city.slug; // ← город
 
-      // Чтобы отправить файлы, используем multipart/form-data:
       const formData = new FormData();
       Object.entries(payload).forEach(([key, val]) => {
         formData.append(key, String(val));
@@ -145,7 +150,6 @@ export default function OfferForm() {
       setSuccess(true);
       setMessage("Предложение сохранено!");
 
-      // Сброс
       setValues({
         hasEndDate: false,
         title: "",
@@ -161,6 +165,8 @@ export default function OfferForm() {
       });
       setCategory(null);
       setCategoryPath([]);
+      setCity(null);
+      router.push('/offers/my')
     } catch (err: any) {
       console.error(err);
       setSuccess(false);
@@ -188,6 +194,18 @@ export default function OfferForm() {
         onChange={handleChange}
         onOpenCategoryModal={() => setModalOpen(true)}
       />
+
+      {/* --- Блок выбора города --- */}
+      <div className="flex flex-col space-y-2">
+        <label className="text-sm font-medium text-gray-700">Город</label>
+        <button
+          type="button"
+          onClick={() => setModalCityOpen(true)}
+          className="px-4 py-2 border rounded-lg text-left hover:bg-gray-50"
+        >
+          {city ? city.name : "Выбрать город"}
+        </button>
+      </div>
 
       <div className="space-y-6">
         <div className="grid gap-4 md:grid-cols-2">
@@ -234,6 +252,13 @@ export default function OfferForm() {
         }}
         initialCategoryPath={categoryPath}
         selectedCategoryId={category?.id || null}
+      />
+
+      <CitySelectorModal
+        open={modalCityOpen}
+        onClose={() => setModalCityOpen(false)}
+        onSelect={(selectedCity) => setCity(selectedCity)}
+        selectedCityCode={city?.slug || null}
       />
     </form>
   );

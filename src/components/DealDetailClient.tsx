@@ -4,7 +4,7 @@ import React from "react";
 import { ChevronLeft, Star, Calendar, Clock, MapPin, HandCoins, Phone, Globe } from "lucide-react";
 import { Deal } from "../types";
 import DealCard from "./OfferCard";
-import { mockDeals } from "../../app/data/mocks";
+import { mockDeals } from "../data/mocks";
 
 interface DealDetailClientProps {
     deal: Deal;

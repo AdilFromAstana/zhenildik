@@ -1,5 +1,5 @@
 // src/app/data/mocks.ts
-import { Deal, CuratedCollection, FilterState } from '../types';
+import { Deal, CuratedCollection, FilterState } from '@/types';
 import { Pizza, Sparkles, Stethoscope, Shirt, Dumbbell, Laptop, Gift } from 'lucide-react';
 
 // Импортируйте нужные типы иконок

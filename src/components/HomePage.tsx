@@ -9,7 +9,7 @@ import {
   BEST_DEALS_MOCK,
   CURATED_COLLECTIONS_MOCK,
   mockDeals,
-} from "../../app/data/mocks";
+} from "@/data/mocks";
 
 const HomePage: React.FC = () => {
   const router = useRouter();
