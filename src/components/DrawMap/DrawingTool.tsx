@@ -1,6 +1,6 @@
 "use client";
 import { useEffect } from "react";
-import type { DrawingToolProps } from "@/src/types";
+import type { DrawingToolProps } from "@/types";
 
 const DrawingTool: React.FC<DrawingToolProps> = ({
   map,

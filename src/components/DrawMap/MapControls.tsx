@@ -1,5 +1,5 @@
 "use client";
-import { MapControlsProps } from "@/src/types";
+import { MapControlsProps } from "@/types";
 import React from "react";
 
 const MapControls: React.FC<MapControlsProps> = ({

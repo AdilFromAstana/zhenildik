@@ -1,5 +1,5 @@
 "use client";
-import { PropertyListProps } from "@/src/types";
+import { PropertyListProps } from "@/types";
 import React from "react";
 
 const PropertyList: React.FC<PropertyListProps> = ({ filtered, polygon }) => {

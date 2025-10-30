@@ -112,6 +112,17 @@ export default function OfferForm() {
   const [message, setMessage] = useState<string | null>(null);
   const [success, setSuccess] = useState<boolean | null>(null);
 
+  const [branchLocation, setBranchLocation] = useState<[number, number] | null>(null);
+  const [branchAddress, setBranchAddress] = useState<string | null>(null);
+
+  const handleAddressSelect = (coords: [number, number], address: string) => {
+    setBranchLocation(coords);
+    setBranchAddress(address);
+    // Здесь можно обновить основное состояние формы, например:
+    // handleChange("branchCoords", coords);
+    // handleChange("branchAddress", address);
+  };
+
   const [values, setValues] = useState<OfferFormValues>({
     hasEndDate: false,
     title: "",
@@ -204,6 +215,7 @@ export default function OfferForm() {
       case 1:
         return (
           <Step1BasicInfo
+            onAddressSelect={handleAddressSelect}
             values={values}
             errors={errors}
             wasSubmitted={wasSubmitted}

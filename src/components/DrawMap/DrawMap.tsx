@@ -19,7 +19,6 @@ interface DrawMapProps {
 }
 
 const DrawMap: React.FC<DrawMapProps> = ({ locations, userCoords }) => {
-  console.log("userCoords: ", userCoords);
   const [filtered, setFiltered] = useState<any[]>([]);
   const [polygon, setPolygon] = useState<PolygonInstance | null>(null);
 

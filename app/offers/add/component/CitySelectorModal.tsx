@@ -52,7 +52,7 @@ export default function CitySelectorModal({
                         const isSelected = city.slug === selectedCityCode;
                         return (
                             <button
-                                key={city.code}
+                                key={city.slug}
                                 onClick={() => {
                                     onSelect(city);
                                     onClose();
