@@ -39,7 +39,7 @@ export default async function AllOffersByCityPage({
     }),
     fetchCities(),
     fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/offers?cityCode=${decodedCity}&page=1&limit=20`,
+      `${process.env.NEXT_PUBLIC_API_URL}/offers?cityCode=${decodedCity}&page=1&status=ACTIVE&limit=20`,
       { cache: "no-store" }
     ),
   ]);
