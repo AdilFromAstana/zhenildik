@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import LoginForm from "./components/LoginForm";
 import RegisterForm from "./components/RegisterForm";
 import VerifyForm from "./components/VerifyForm";
@@ -13,10 +13,29 @@ export default function AuthPage() {
   const [userId, setUserId] = useState<number | null>(null);
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
+  const searchParams = useSearchParams();
+  
+  const handleLoginSuccess = async (token: string) => {
+    try {
+      await fetch('/api/auth/set-cookie', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ token }),
+      });
 
-  const handleLoginSuccess = (token: string) => {
-    localStorage.setItem("token", token);
-    router.push("/offers/add");
+      const returnUrl = searchParams.get('returnUrl');
+
+      const targetUrl = returnUrl || '/profile';
+
+      router.push(targetUrl);
+
+    } catch (error) {
+      console.error("Ошибка при установке куки и редиректе:", error);
+      // Обработка ошибки, возможно, уведомление пользователя
+      router.push('/');
+    }
   };
 
   const handleNeedRegister = (email: string, pass: string) => {

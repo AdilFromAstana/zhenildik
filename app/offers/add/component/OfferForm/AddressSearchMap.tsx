@@ -84,8 +84,6 @@ const AddressSearchMap: React.FC<AddressSearchMapProps> = ({
         results: 10,
       });
 
-      console.log("res: ", res);
-
       const arr = res.geoObjects.toArray();
 
       const withDistances = arr.map((obj: any) => {

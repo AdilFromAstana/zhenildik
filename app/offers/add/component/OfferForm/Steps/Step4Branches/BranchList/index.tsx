@@ -8,6 +8,7 @@ export type Branch = {
     lat: number;
     lon: number;
   };
+  coords: [number, number]
 };
 
 interface BranchListProps {
@@ -23,7 +24,6 @@ export default function BranchList({
   onEditBranch,
   onRemoveBranch,
 }: BranchListProps) {
-  console.log("branches: ", branches);
   return (
     <div className="w-full max-w-2xl mx-auto mt-8">
       <h1 className="text-2xl font-semibold mb-4 text-gray-800">Мои филиалы</h1>

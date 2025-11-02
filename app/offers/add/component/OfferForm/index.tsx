@@ -139,12 +139,11 @@ export default function OfferForm() {
 
   const handleAddBranch = useCallback(
     (item: Branch) => {
-      console.log("item: ", item);
       const exists = branches.some(
         (b) =>
           b.name.trim().toLowerCase() ===
-            item.name.trim().toLowerCase() ||
-          (b.point.lat === item.point.lat && b.point.lon === item.point.lon)
+          item.name.trim().toLowerCase() ||
+          (b.coords[0] === item.coords[0] && b.coords[1] === item.coords[1])
       );
       if (exists) {
         toast.error("Этот филиал уже добавлен!");
@@ -154,7 +153,8 @@ export default function OfferForm() {
         id: Date.now().toString(),
         name: item.name.split(",")[0] || "Филиал",
         address_name: item.address_name,
-        point: item.point,
+        coords: item.coords,
+        point: item.point
       };
 
       setBranches([...branches, newBranch]);
@@ -273,11 +273,9 @@ export default function OfferForm() {
       >
         <AddressSearchMap2GIS
           onAddressSelect={handleAddBranch}
-          initialCoords={[
-            selectedBranch?.point.lat!,
-            selectedBranch?.point.lon!,
-          ]}
+          initialCoords={selectedBranch?.coords}
           initialName={selectedBranch?.name}
+          allBranches={branches}
         />
       </Modal>
     </>

@@ -2,15 +2,17 @@
 // src/app/components/AppHeader.tsx
 import React from "react";
 import { Search, Menu } from "lucide-react"; // Убрали User, добавили Menu
+import { useRouter } from "next/navigation";
 
 interface AppHeaderProps {
   onOpenMobileMenu: () => void; // Новый пропс для открытия бокового меню
 }
 
-const AppHeader: React.FC<AppHeaderProps> = ({ onOpenMobileMenu }) => (
-  <header className="bg-white shadow-sm sticky top-0 z-10 border-b border-gray-100">
+const AppHeader: React.FC<AppHeaderProps> = ({ onOpenMobileMenu }) => {
+  const router = useRouter()
+  return <header className="bg-white shadow-sm sticky top-0 z-10 border-b border-gray-100">
     <div className="container mx-auto px-4 py-3 flex items-center justify-between gap-4">
-      <h1 className="text-2xl font-extrabold text-blue-600 cursor-pointer">
+      <h1 className="text-2xl font-extrabold text-blue-600 cursor-pointer" onClick={() => router.push('/')}>
         <span className="text-orange-600">i</span>Akcii
       </h1>
       <nav className="hidden sm:flex space-x-4">
@@ -51,6 +53,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({ onOpenMobileMenu }) => (
       </div>
     </div>
   </header>
-);
+}
+
 
 export default AppHeader;

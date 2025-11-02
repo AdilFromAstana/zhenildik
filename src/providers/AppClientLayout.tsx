@@ -22,19 +22,21 @@ export default function AppClientLayout({
   const showFooter = !hiddenFooterPaths.includes(pathname ?? "");
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) return;
-
     const checkAuth = async () => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/user/me`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const statusRes = await fetch('/api/auth/status');
+        const statusData = await statusRes.json();
+
+        if (!statusData.isAuthenticated) {
+          setIsAuthenticated(false);
+          setUser(null);
+          return;
+        }
+
+        const res = await fetch('/api/user/me');
 
         if (!res.ok) {
-          localStorage.removeItem("token");
+          await fetch('/api/auth/logout', { method: 'POST' });
           setIsAuthenticated(false);
           setUser(null);
           return;
@@ -45,17 +47,22 @@ export default function AppClientLayout({
         setUser(data);
       } catch (err) {
         console.error("Ошибка проверки токена:", err);
-        localStorage.removeItem("token");
+        // При ошибке сети или другом сбое также удаляем потенциально невалидный токен
+        await fetch('/api/auth/logout', { method: 'POST' });
       }
     };
 
     checkAuth();
   }, []);
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
+  const handleLogout = async () => {
+    await fetch('/api/auth/logout', { method: 'POST' });
+
+    // 2. Сбрасываем клиентское состояние
     setIsAuthenticated(false);
     setUser(null);
+
+    // 3. Редирект
     router.push("/");
   };
 
@@ -73,6 +80,7 @@ export default function AppClientLayout({
         onClose={() => setShowMobileMenu(false)}
         isAuthenticated={isAuthenticated}
         onLogout={handleLogout}
+        currentPath={pathname ?? "/"} // <-- ДОБАВЛЕНО
       />
     </main>
   );

@@ -26,18 +26,6 @@ const Step1BasicInfo: React.FC<Props> = ({
   onOpenCategoryModal,
   onOpenCityModal,
 }) => {
-  const [selectedAddress, setSelectedAddress] = useState<string | null>(null);
-  const [selectedCoords, setSelectedCoords] = useState<[number, number] | null>(
-    null
-  );
-
-  const handleAddressSelectFromMap = (
-    coords: [number, number],
-    address: string
-  ) => {
-    setSelectedCoords(coords);
-    setSelectedAddress(address);
-  };
   return (
     <>
       <BasicInfoSection

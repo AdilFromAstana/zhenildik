@@ -3,18 +3,19 @@ import React, { useState, useCallback, useRef } from "react";
 import { Search } from "lucide-react";
 import SearchResultList from "./SearchResultList";
 import { Branch } from "../..";
+import { ByIdItem, SuggestItem } from "../types";
 
 const DGIS_API_KEY = "4dd7b86c-ee1e-42ea-8efa-da3f2eadfb7d";
 
 type SearchInputContainerProps = {
-  onSelectAddress: (item: Branch) => void;
+  onSelectAddress: (item: SuggestItem) => void;
 };
 
 const SearchInputContainer: React.FC<SearchInputContainerProps> = ({
   onSelectAddress,
 }) => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [results, setResults] = useState<any[]>([]);
+  const [results, setResults] = useState<SuggestItem[]>([]);
   const [open, setOpen] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -31,7 +32,7 @@ const SearchInputContainer: React.FC<SearchInputContainerProps> = ({
 
     const res = await fetch(url);
     const data = await res.json();
-    const items = data?.result?.items ?? [];
+    const items: SuggestItem[] = data?.result?.items ?? [];
     setResults(items);
     setOpen(items.length > 0);
   }, []);
@@ -46,7 +47,7 @@ const SearchInputContainer: React.FC<SearchInputContainerProps> = ({
     [handleSearch]
   );
 
-  const fetchItemDetails = async (id: string) => {
+  const fetchItemDetails = async (id: string): Promise<ByIdItem | null> => {
     const url = `https://catalog.api.2gis.com/3.0/items/byid?id=${id}&fields=items.point,items.geometry.centroid,items.full_name,items.name,items.address,items.adm_div&key=${DGIS_API_KEY}`;
     const res = await fetch(url);
     const data = await res.json();
@@ -54,22 +55,14 @@ const SearchInputContainer: React.FC<SearchInputContainerProps> = ({
   };
 
   const handleSelect = useCallback(
-    async (item: Branch) => {
-      console.log("item: ", item);
+    async (item: SuggestItem) => {
       let coords: [number, number] | null = null;
       let label = item?.name || "";
 
-      if (item?.point?.lon && item?.point?.lat) {
-        coords = [item.point.lon, item.point.lat];
-      } else if (item?.id) {
-        const details = await fetchItemDetails(item.id);
+      if (item?.id) {
+        const details: ByIdItem | null = await fetchItemDetails(item.id);
         if (details?.point) {
           coords = [details.point.lon, details.point.lat];
-        } else if (details?.geometry?.centroid) {
-          coords = [
-            details.geometry.centroid.lon,
-            details.geometry.centroid.lat,
-          ];
         }
         label = details?.name || label;
       }
@@ -79,7 +72,7 @@ const SearchInputContainer: React.FC<SearchInputContainerProps> = ({
       setSearchQuery(label);
       setResults([]);
       setOpen(false);
-      onSelectAddress(item);
+      onSelectAddress({ ...item, coords });
     },
     [onSelectAddress]
   );

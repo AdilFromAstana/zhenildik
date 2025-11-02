@@ -10,7 +10,6 @@ type UserData = {
 };
 
 export default function ProfilePage() {
-  // ----------------- state -----------------
   const [user, setUser] = useState<UserData | null>(null);
 
   const [loadingProfile, setLoadingProfile] = useState(true); // загрузка именно профиля
@@ -27,7 +26,6 @@ export default function ProfilePage() {
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // ----------------- 1. получаем данные профиля -----------------
   async function fetchProfile() {
     setLoadingProfile(true);
     setErrorMsg("");
@@ -217,9 +215,9 @@ export default function ProfilePage() {
         setUser((prev) =>
           prev
             ? {
-                ...prev,
-                avatarUrl: data.avatarUrl || prev.avatarUrl,
-              }
+              ...prev,
+              avatarUrl: data.avatarUrl || prev.avatarUrl,
+            }
             : prev
         );
         setSuccessMsg("Аватар обновлён");
@@ -242,7 +240,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-10">
+    <div className="flex items-center justify-center bg-gray-50 px-4 py-10">
       <div className="w-full max-w-md bg-white rounded-xl shadow-lg p-6 animate-fade-in">
         <h1 className="text-2xl font-bold text-gray-900 mb-4">
           Личный кабинет
@@ -324,10 +322,9 @@ export default function ProfilePage() {
             type="submit"
             disabled={saving}
             className={`w-full rounded-lg py-2.5 font-semibold text-white shadow-sm transition 
-              ${
-                saving
-                  ? "bg-blue-400 cursor-not-allowed"
-                  : "bg-blue-600 hover:bg-blue-700"
+              ${saving
+                ? "bg-blue-400 cursor-not-allowed"
+                : "bg-blue-600 hover:bg-blue-700"
               }
             `}
           >
@@ -377,10 +374,9 @@ export default function ProfilePage() {
             type="submit"
             disabled={saving}
             className={`w-full rounded-lg py-2.5 font-semibold text-white shadow-sm transition 
-              ${
-                saving
-                  ? "bg-green-400 cursor-not-allowed"
-                  : "bg-green-600 hover:bg-green-700"
+              ${saving
+                ? "bg-green-400 cursor-not-allowed"
+                : "bg-green-600 hover:bg-green-700"
               }
             `}
           >
@@ -388,6 +384,6 @@ export default function ProfilePage() {
           </button>
         </form>
       </div>
-    </main>
+    </div>
   );
 }
