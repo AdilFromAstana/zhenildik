@@ -1,10 +1,11 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import AppHeader from "../components/AppHeader";
 import AppFooter from "../components/AppFooter";
 import MobileSidebar from "../components/MobileSidebar";
+import { Toaster } from "react-hot-toast";
 
 export default function AppClientLayout({
   children,
@@ -12,11 +13,14 @@ export default function AppClientLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
 
-  // ✅ Проверяем токен при монтировании
+  const hiddenFooterPaths = ["/offers/add", "/login", "/register"];
+  const showFooter = !hiddenFooterPaths.includes(pathname ?? "");
+
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) return;
@@ -30,7 +34,6 @@ export default function AppClientLayout({
         });
 
         if (!res.ok) {
-          // токен невалидный
           localStorage.removeItem("token");
           setIsAuthenticated(false);
           setUser(null);
@@ -57,12 +60,13 @@ export default function AppClientLayout({
   };
 
   return (
-    <main className="flex flex-col min-h-screen relative bg-transparent">
+    <main className="flex flex-col min-h-screen bg-gray-50">
+      <Toaster position="top-right" reverseOrder={false} />
       <AppHeader onOpenMobileMenu={() => setShowMobileMenu(true)} />
 
-      <div className="flex-grow bg-gray-50">{children}</div>
+      <div className="flex-1 flex flex-col">{children}</div>
 
-      <AppFooter />
+      {showFooter && <AppFooter />}
 
       <MobileSidebar
         isOpen={showMobileMenu}

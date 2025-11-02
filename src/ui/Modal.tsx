@@ -10,6 +10,7 @@ interface ModalProps {
   title?: string;
   children: React.ReactNode;
   className?: string;
+  overlayClassName?: string;
 }
 
 export default function Modal({
@@ -18,6 +19,7 @@ export default function Modal({
   title,
   children,
   className = "",
+  overlayClassName = "",
 }: ModalProps) {
   useEffect(() => {
     document.body.style.overflow = isOpen ? "hidden" : "";
@@ -28,9 +30,15 @@ export default function Modal({
 
   const modalContent = (
     <div
-      className={`fixed inset-0 z-[10000] flex items-center justify-center p-4 
+      className={`
+        fixed inset-0 z-[1000] flex items-center justify-center p-4 
         bg-black/50 backdrop-blur-sm transition-opacity duration-200
-        ${isOpen ? "opacity-100 visible" : "opacity-0 invisible pointer-events-none"}
+        ${
+          isOpen
+            ? "opacity-100 visible"
+            : "opacity-0 invisible pointer-events-none"
+        }
+        ${overlayClassName}
       `}
       onClick={onClose}
     >

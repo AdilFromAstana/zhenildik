@@ -3,8 +3,11 @@
 export type Branch = {
   id: string;
   name: string;
-  address: string;
-  coords: [number, number];
+  address_name: string;
+  point: {
+    lat: number;
+    lon: number;
+  };
 };
 
 interface BranchListProps {
@@ -20,6 +23,7 @@ export default function BranchList({
   onEditBranch,
   onRemoveBranch,
 }: BranchListProps) {
+  console.log("branches: ", branches);
   return (
     <div className="w-full max-w-2xl mx-auto mt-8">
       <h1 className="text-2xl font-semibold mb-4 text-gray-800">Мои филиалы</h1>
@@ -39,7 +43,7 @@ export default function BranchList({
                 <h3 className="text-lg font-medium text-gray-800">
                   {branch.name}
                 </h3>
-                <p className="text-sm text-gray-500">{branch.address}</p>
+                <p className="text-sm text-gray-500">{branch.address_name}</p>
               </div>
               <div className="flex flex-col gap-1">
                 <button
@@ -64,7 +68,7 @@ export default function BranchList({
         onClick={onAddBranch}
         className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg transition"
       >
-        ➕ Добавить филиал
+        Добавить филиал
       </button>
     </div>
   );

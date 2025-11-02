@@ -1,5 +1,5 @@
 // app/components/offer-form/Step1BasicInfo.tsx
-import { useState } from "react";
+import React, { useState } from "react";
 // import AddressSearchMap from "./AddressSearchMap";
 import BasicInfoSection from "./BasicInfoSection";
 
@@ -13,10 +13,9 @@ type Props = {
   handleChange: any; // используем тип OfferFormChangeHandler
   onOpenCategoryModal: () => void;
   onOpenCityModal: () => void;
-  onAddressSelect: (coords: [number, number], address: string) => void;
 };
 
-export default function Step1BasicInfo({
+const Step1BasicInfo: React.FC<Props> = ({
   values,
   errors,
   wasSubmitted,
@@ -26,8 +25,7 @@ export default function Step1BasicInfo({
   handleChange,
   onOpenCategoryModal,
   onOpenCityModal,
-  onAddressSelect,
-}: Props) {
+}) => {
   const [selectedAddress, setSelectedAddress] = useState<string | null>(null);
   const [selectedCoords, setSelectedCoords] = useState<[number, number] | null>(
     null
@@ -39,8 +37,6 @@ export default function Step1BasicInfo({
   ) => {
     setSelectedCoords(coords);
     setSelectedAddress(address);
-    // Вызываем функцию, переданную из родительского компонента (например, OfferForm)
-    onAddressSelect(coords, address);
   };
   return (
     <>
@@ -72,4 +68,5 @@ export default function Step1BasicInfo({
       </div>
     </>
   );
-}
+};
+export default Step1BasicInfo;

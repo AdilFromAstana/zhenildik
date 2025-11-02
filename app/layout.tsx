@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import ReactQueryClientProvider from "@/providers/QueryClientProvider";
 import AppClientLayout from "@/providers/AppClientLayout";
+import { MapProvider } from "@/providers/MapProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -73,9 +74,11 @@ export default function RootLayout({
         suppressHydrationWarning
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50 text-gray-900 w-full`}
       >
-        <ReactQueryClientProvider>
-          <AppClientLayout>{children}</AppClientLayout>
-        </ReactQueryClientProvider>
+        <MapProvider>
+          <ReactQueryClientProvider>
+            <AppClientLayout>{children}</AppClientLayout>
+          </ReactQueryClientProvider>
+        </MapProvider>
       </body>
     </html>
   );
