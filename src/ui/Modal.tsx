@@ -9,7 +9,7 @@ interface ModalProps {
   onClose: () => void;
   title?: string;
   children: React.ReactNode;
-  className?: string; // 👈 новый проп
+  className?: string;
 }
 
 export default function Modal({
@@ -26,11 +26,12 @@ export default function Modal({
     };
   }, [isOpen]);
 
-  if (!isOpen) return null;
-
   const modalContent = (
     <div
-      className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+      className={`fixed inset-0 z-[10000] flex items-center justify-center p-4 
+        bg-black/50 backdrop-blur-sm transition-opacity duration-200
+        ${isOpen ? "opacity-100 visible" : "opacity-0 invisible pointer-events-none"}
+      `}
       onClick={onClose}
     >
       <div

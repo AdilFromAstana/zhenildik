@@ -3,11 +3,16 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
 import CategorySelectorModal from "../CategorySelectorModal";
 import CitySelectorModal from "../CitySelectorModal";
-import Step1BasicInfo from "./Step1BasicInfo";
-import Step2Details from "./Step2Details";
-import Step3Media from "./Step3Media";
+import Step1BasicInfo from "./Steps/Step1BasicInfo";
+import Step2Details from "./Steps/Step2Details";
+import Step3Media from "./Steps/Step3Media";
 import axiosInstance from "@/lib/axiosInstance";
 import { useRouter } from "next/navigation";
+import { submitForm, validateStep } from "./lib/common";
+import Step4Branches from "./Steps/Step4Branches";
+import Modal from "@/ui/Modal";
+import { Branch } from "./Steps/Step4Branches/BranchList";
+import AddressSearchMap2GIS from "./Steps/Step4Branches/BranchList/AddressSearchMap2GIS";
 
 export type OfferFormValues = {
   title: string;
@@ -35,67 +40,6 @@ export type OfferFormChangeHandler = <K extends keyof OfferFormValues>(
   value: OfferFormValues[K]
 ) => void;
 
-const validateStep = (step: number, values: OfferFormValues, category: any, city: any) => {
-  const errors: Record<string, string> = {};
-
-  if (step === 1) {
-    if (!values.title.trim()) errors.title = "Введите название";
-    if (!values.description.trim()) errors.description = "Введите описание";
-    if (!values.offerType) errors.offerType = "Выберите тип предложения";
-    if (!category?.id) errors.categoryId = "Выберите категорию";
-    if (!city?.slug) errors.cityCode = "Выберите город";
-  } else if (step === 2) {
-    if (values.hasMinPrice && (!values.minPrice.trim() || isNaN(Number(values.minPrice)))) {
-      errors.minPrice = "Укажите корректную цену";
-    }
-    if (values.hasConditions && !values.conditions.trim()) {
-      errors.conditions = "Укажите условия";
-    }
-    if (values.hasEndDate) {
-      if (!values.startDate) errors.startDate = "Укажите дату начала";
-      if (!values.endDate) errors.endDate = "Укажите дату окончания";
-      if (values.startDate && values.endDate && values.startDate > values.endDate) {
-        errors.endDate = "Дата окончания не может быть раньше начала";
-      }
-    }
-  }
-  // На шаге 3 можно добавить валидацию постеров, если нужно
-
-  return errors;
-};
-
-const submitForm = async (values: OfferFormValues, category: any, city: any, router: any) => {
-  const payload: any = {
-    title: values.title,
-    description: values.description,
-    offerTypeCode: values.offerType,
-    hasMinPrice: values.hasMinPrice,
-    hasConditions: values.hasConditions,
-    hasEndDate: values.hasEndDate,
-    categoryId: category.id,
-    cityCode: city.slug,
-  };
-
-  if (values.hasMinPrice) payload.minPrice = values.minPrice;
-  if (values.hasConditions) payload.conditions = values.conditions;
-  if (values.hasEndDate) {
-    payload.startDate = values.startDate;
-    payload.endDate = values.endDate;
-  }
-
-  const formData = new FormData();
-  Object.entries(payload).forEach(([key, val]) => {
-    formData.append(key, String(val));
-  });
-  values.posters.forEach((file) => formData.append("posters", file));
-
-  const { data } = await axiosInstance.post("/offers", formData, {
-    headers: { "Content-Type": "multipart/form-data" },
-  });
-
-  return data;
-};
-
 export default function OfferForm() {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
@@ -111,6 +55,11 @@ export default function OfferForm() {
   const [wasSubmitted, setWasSubmitted] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [success, setSuccess] = useState<boolean | null>(null);
+  const [branches, setBranches] = useState<
+    { id: string; name: string; address: string; coords: [number, number] }[]
+  >([]);
+  const [isBranchModalOpen, setBranchModalOpen] = useState(false);
+  const [selectedBranch, setSelectedBranch] = useState<Branch | null>(null);
 
   const [branchLocation, setBranchLocation] = useState<[number, number] | null>(null);
   const [branchAddress, setBranchAddress] = useState<string | null>(null);
@@ -121,6 +70,26 @@ export default function OfferForm() {
     // Здесь можно обновить основное состояние формы, например:
     // handleChange("branchCoords", coords);
     // handleChange("branchAddress", address);
+  };
+
+  const handleAddBranch = (coords: [number, number], address: string) => {
+    const newBranch: Branch = {
+      id: Date.now().toString(),
+      name: address.split(",")[0] || "Филиал",
+      address,
+      coords,
+    };
+    setBranches((prev) => [...prev, newBranch]);
+    setBranchModalOpen(false);
+  };
+
+  const handleRemoveBranch = (id: string) => {
+    setBranches((prev) => prev.filter((b) => b.id !== id));
+  };
+
+  const handleOpenBranchModal = (branch: Branch | null) => {
+    setSelectedBranch(branch);
+    setBranchModalOpen(true);
   };
 
   const [values, setValues] = useState<OfferFormValues>({
@@ -137,11 +106,12 @@ export default function OfferForm() {
     posters: [],
   });
 
-  const totalSteps = 3;
+  const totalSteps = 4;
   const titles = [
-    'Шаг 1 из 3: Основная информация',
-    'Шаг 2 из 3: Детали и условия',
-    'Шаг 3 из 3: Визуальное оформление',
+    "Шаг 1 из 4: Основная информация",
+    "Шаг 2 из 4: Детали и условия",
+    "Шаг 3 из 4: Визуальное оформление",
+    "Шаг 4 из 4: Филиалы компании",
   ];
 
   // --- Загрузка типов предложений ---
@@ -247,8 +217,19 @@ export default function OfferForm() {
             handleSubmit={handleSubmit}
           />
         );
+      case 4:
+        return (
+          <Step4Branches
+            branches={branches}
+            onAddBranch={() => handleOpenBranchModal(null)}
+            onEditBranch={(branch) => handleOpenBranchModal(branch)}
+            onRemoveBranch={(id) =>
+              setBranches((prev) => prev.filter((b) => b.id !== id))
+            }
+          />
+        );
       default:
-        return <div>Неизвестный шаг.</div>;
+        return null;
     }
   }, [currentStep, values, errors, wasSubmitted, offerTypes, categoryPath, city, handleChange, submitting, message, success, handleSubmit]);
 
@@ -310,6 +291,23 @@ export default function OfferForm() {
         onSelect={(selectedCity) => setCity(selectedCity)}
         selectedCityCode={city?.slug || null}
       />
+
+      <Modal
+        isOpen={isBranchModalOpen}
+        onClose={() => setBranchModalOpen(false)}
+        title={
+          selectedBranch
+            ? `Филиал: ${selectedBranch.name}`
+            : "Выберите филиал на карте"
+        }
+        className="h-[85vh] !p-2 sm:rounded-xl"
+      >
+        <AddressSearchMap2GIS
+          onAddressSelect={handleAddBranch}
+          initialCoords={selectedBranch?.coords}
+          initialName={selectedBranch?.name}
+        />
+      </Modal>
     </div>
   );
 }

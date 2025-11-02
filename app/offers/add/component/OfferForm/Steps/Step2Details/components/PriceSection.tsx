@@ -1,7 +1,7 @@
 // app/components/offer-form/PriceSection.tsx
 import { Wallet } from "lucide-react";
 import { Input, FieldError, RequiredMark } from "@/ui";
-import { OfferFormChangeHandler } from ".";
+import { OfferFormChangeHandler } from "../../..";
 
 type Props = {
     hasMinPrice: boolean;

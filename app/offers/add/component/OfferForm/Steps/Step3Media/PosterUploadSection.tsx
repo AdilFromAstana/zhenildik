@@ -1,7 +1,7 @@
 // app/components/offer-form/PosterUploadSection.tsx
 import { ImageIcon } from "lucide-react";
 import { useState, useEffect } from "react";
-import { OfferFormChangeHandler } from ".";
+import { OfferFormChangeHandler } from "../..";
 
 type Props = {
     posters: File[];

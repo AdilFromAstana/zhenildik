@@ -1,9 +1,7 @@
 // app/components/offer-form/Step1BasicInfo.tsx
 import { useState } from "react";
-import BasicInfoSection from "./BasicInfoSection";
 // import AddressSearchMap from "./AddressSearchMap";
-import AddressSearchMap2GIS from "./AddressSearchMap2GIS";
-import BranchList from "./BranchList";
+import BasicInfoSection from "./BasicInfoSection";
 
 type Props = {
   values: any; // используем тип OfferFormValues, если нужно строгое определение
@@ -72,7 +70,6 @@ export default function Step1BasicInfo({
           <p className="text-red-500 text-xs">{errors.cityCode}</p>
         )}
       </div>
-      <BranchList />
     </>
   );
 }

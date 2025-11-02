@@ -1,7 +1,7 @@
 // app/components/offer-form/Step2Details.tsx
-import PriceSection from "./PriceSection";
-import ConditionsSection from "./ConditionsSection";
-import DateRangeSection from "./DateRangeSection";
+import ConditionsSection from "./components/ConditionsSection";
+import DateRangeSection from "./components/DateRangeSection";
+import PriceSection from "./components/PriceSection";
 
 type Props = {
     values: any; // используем тип OfferFormValues

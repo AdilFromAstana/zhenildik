@@ -1,8 +1,8 @@
 // app/components/offer-form/BasicInfoSection.tsx
 import { Shapes, Type, FileText } from "lucide-react";
-import { OfferFormChangeHandler, OfferType } from ".";
 import { useEffect, useState } from "react";
 import { FieldError, Input, RequiredMark, SelectField, Textarea } from "@/ui";
+import { OfferFormChangeHandler, OfferType } from "../..";
 
 const TITLE_EXAMPLES = [
     "3 пиццы по цене 2",
