@@ -1,10 +1,8 @@
-// app/api/user/me/route.ts
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
     const cookieStore = await cookies();
-    // Имя 'token' должно совпадать с тем, что вы установили в set-cookie
     const token = cookieStore.get('token')?.value;
 
     if (!token) {

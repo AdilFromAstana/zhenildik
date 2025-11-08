@@ -72,7 +72,6 @@ export default function FiltersBar({
                     : "bg-white text-gray-600 border-gray-300 hover:bg-blue-50 hover:border-blue-400"
                 }`}
               >
-                <span className="mr-1">{cat.icon ?? "🍀"}</span>
                 {cat.name}
               </button>
             );

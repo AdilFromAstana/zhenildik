@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import ReactQueryClientProvider from "@/providers/QueryClientProvider";
 import AppClientLayout from "@/providers/AppClientLayout";
+import { AuthProvider } from "@/providers/AuthProvider";
 // import { MapProvider } from "@/providers/MapProvider";
 
 const geistSans = Geist({
@@ -16,11 +17,11 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Zhenildik.kz — все скидки и акции Казахстана в одном месте",
+  title: "Skidka-bar.kz — все скидки и акции Казахстана в одном месте",
   description:
-    "Zhenildik.kz — единый каталог выгодных предложений Казахстана. Находи акции, скидки, бонусы и промо-акции рядом с тобой: рестораны, магазины, салоны, техника и многое другое.",
+    "Skidka-bar.kz — единый каталог выгодных предложений Казахстана. Находи акции, скидки, бонусы и промо-акции рядом с тобой: рестораны, магазины, салоны, техника и многое другое.",
   keywords: [
-    "Zhenildik.kz",
+    "Skidka-bar.kz",
     "скидки Казахстан",
     "акции Казахстан",
     "купоны Казахстан",
@@ -34,32 +35,32 @@ export const metadata: Metadata = {
     "каталог акций",
   ],
   openGraph: {
-    title: "Zhenildik.kz — каталог скидок и акций Казахстана",
+    title: "Skidka-bar.kz — каталог скидок и акций Казахстана",
     description:
-      "Все акции и скидки Казахстана — на одном сайте. Еда, красота, одежда, медицина, техника и многое другое. Экономь каждый день с Zhenildik.kz!",
-    url: "https://zhenildik.kz",
-    siteName: "Zhenildik.kz",
+      "Все акции и скидки Казахстана — на одном сайте. Еда, красота, одежда, медицина, техника и многое другое. Экономь каждый день с Skidka-bar.kz!",
+    url: "https://skidka-bar.kz",
+    siteName: "Skidka-bar.kz",
     locale: "ru_RU",
     type: "website",
     images: [
       {
-        url: "https://zhenildik.kz/og-image.jpg",
+        url: "https://skidka-bar.kz/og-image.jpg",
         width: 1200,
         height: 630,
-        alt: "Zhenildik.kz — каталог скидок и акций Казахстана",
+        alt: "Skidka-bar.kz — каталог скидок и акций Казахстана",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Zhenildik.kz — все скидки и акции Казахстана",
+    title: "Skidka-bar.kz — все скидки и акции Казахстана",
     description:
-      "Находи акции, скидки и бонусы рядом с тобой. Zhenildik.kz — живи выгодно!",
-    images: ["https://zhenildik.kz/og-image.jpg"],
+      "Находи акции, скидки и бонусы рядом с тобой. Skidka-bar.kz — живи выгодно!",
+    images: ["https://skidka-bar.kz/og-image.jpg"],
   },
-  metadataBase: new URL("https://zhenildik.kz"),
+  metadataBase: new URL("https://skidka-bar.kz"),
   alternates: {
-    canonical: "https://zhenildik.kz",
+    canonical: "https://skidka-bar.kz",
   },
 };
 
@@ -75,7 +76,9 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50 text-gray-900 w-full`}
       >
         <ReactQueryClientProvider>
-          <AppClientLayout>{children}</AppClientLayout>
+          <AuthProvider>
+            <AppClientLayout>{children}</AppClientLayout>
+          </AuthProvider>
         </ReactQueryClientProvider>
       </body>
     </html>

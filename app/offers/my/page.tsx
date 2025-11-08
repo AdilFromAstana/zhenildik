@@ -9,26 +9,74 @@ import { useOfferStats } from "../../../src/hooks/useOfferStats";
 import OfferStatusFilter from "./components/OfferStatusFilter";
 import axiosInstance from "@/lib/axiosInstance";
 
-export type Offer = {
+export interface Offer {
   id: number;
   title: string;
-  description: string;
-  offerTypeCode: string;
-  categoryId: number;
-  hasMinPrice: boolean;
-  minPrice?: number | null;
-  hasConditions: boolean;
-  conditions?: string | null;
-  hasEndDate: boolean;
-  startDate?: string | null;
-  endDate?: string | null;
-  createdAt: string;
+  description: string | null;
+  categoryId: number | null;
+  category: {
+    id: number;
+    slug: string;
+    name: string;
+    icon: string | null;
+  } | null;
+  cityCode: string | null;
+  benefitKind: "NEW_PRICE" | "PERCENT_OFF" | "BUY_X_GET_Y" | string;
+  scope: "ITEM" | "ORDER" | "GLOBAL" | string;
+  oldPrice: string | null;
+  newPrice: string | null;
+  discountAmount: string | null;
+  discountPercent: string | null;
+  buyQty: number | null;
+  getQty: number | null;
+  tradeInRequired: boolean | null;
+  eligibility: {
+    source_link: string | null;
+    channel_codes: string[];
+    discount_text_raw: string | null;
+  } | null;
+  campaignId: string | null;
+  campaignName: string | null;
+  startDate: string | null;
+  endDate: string | null;
   posters: string[];
-  status: "DRAFT" | "ACTIVE" | "ARCHIVED" | "DELETED" | "PENDING";
-  offerType: { code: string; name: string };
-  category: { id: number; name: string; icon: string | null };
-  locations: any[];
-};
+  locations: {
+    id: number;
+    city: string;
+    district: string;
+    name: string;
+    geom: string | null;
+    fullAddress: string;
+    street: string;
+    houseNumber: string;
+    residentialComplex: string | null;
+    phone: string | null;
+    latitude: number;
+    longitude: number;
+    workingHours: Record<
+      string,
+      {
+        open: string;
+        close: string;
+      }
+    > | null;
+    createdByUserId: number;
+  }[];
+  user: {
+    id: number;
+    name: string;
+    avatar: string | null;
+  };
+  createdByUserId: number;
+  status: "DRAFT" | "ACTIVE" | "ARCHIVE" | "DELETED" | "PENDING";
+  channels: string[];
+  primaryChannel: string | null;
+  ctaUrl: string | null;
+  sourceSystem: "MANUAL" | "WOLT" | "KASPI" | "IMPORT" | string;
+  sourceUrl: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
 
 const fetchOffers = async (): Promise<Offer[]> => {
   const { data } = await axiosInstance.get("/offers/my");

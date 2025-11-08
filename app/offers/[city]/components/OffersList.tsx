@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { Offer } from "app/offers/my/page";
 import DrawMap from "@/components/DrawMap/DrawMap";
 import OfferCard from "@/components/OfferCard";
+import OfferCardList from "./OfferCardList";
 
 const MobileMapButton = dynamic(() => import("@/components/MobileMapButton"), {
   ssr: false,
@@ -30,9 +31,7 @@ interface OffersListProps {
 export default function OffersList({ offers = [], total }: OffersListProps) {
   const [displayMode, setDisplayMode] = useState<"list" | "map">("list");
   const [userCoords, setUserCoords] = useState<[number, number] | null>(null);
-  const [sortedOffers, setSortedOffers] = useState<Offer[]>(offers);
 
-  // 1️⃣ Запрашиваем геолокацию пользователя
   useEffect(() => {
     if (!navigator.geolocation) return;
 
@@ -47,51 +46,11 @@ export default function OffersList({ offers = [], total }: OffersListProps) {
     );
   }, []);
 
-  // 2️⃣ На основе геолокации сортируем по ближайшей точке
-  useEffect(() => {
-    if (!userCoords || offers.length === 0) {
-      setSortedOffers(offers);
-      return;
-    }
-
-    const withNearest = offers.map((offer) => {
-      if (!offer.locations?.length) return offer;
-
-      const nearest = offer.locations.reduce((closest: any, loc: any) => {
-        const dist = haversineDistance(userCoords, [
-          loc.latitude,
-          loc.longitude,
-        ]);
-        if (!closest || dist < closest.distanceKm) {
-          return { ...loc, distanceKm: dist };
-        }
-        return closest;
-      }, null);
-
-      return { ...offer, nearestLocation: nearest };
-    });
-
-    const sorted = withNearest.sort(
-      (a: any, b: any) =>
-        (a.nearestLocation?.distanceKm ?? Infinity) -
-        (b.nearestLocation?.distanceKm ?? Infinity)
-    );
-
-    setSortedOffers(sorted);
-  }, [offers, userCoords]);
-
-  // 3️⃣ Массив локаций для карты
   const locations = useMemo(() => {
     return offers.flatMap((offer) =>
-      (offer.locations || []).map((loc) => ({
-        id: `${offer.id}-${loc.id}`,
-        offerId: offer.id,
-        title: offer.title,
-        latitude: loc.latitude,
-        longitude: loc.longitude,
-        address: `${loc.street}, ${loc.houseNumber}`,
-        categoryId: offer.categoryId,
-      }))
+      (offer.locations || []).map((loc) => {
+        return loc;
+      })
     );
   }, [offers]);
 
@@ -102,29 +61,42 @@ export default function OffersList({ offers = [], total }: OffersListProps) {
         <DrawMap locations={locations} userCoords={userCoords} />
       ) : (
         <section>
-          <div className="text-xl font-bold mb-4 text-gray-800">
-            Найдено акций {total}
-          </div>
-
-          {!userCoords && (
-            <p className="text-gray-500 mb-3">
-              Разрешите доступ к геолокации, чтобы увидеть ближайшие акции 🔍
-            </p>
-          )}
-
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {sortedOffers.map((offer: any) => (
-              <OfferCard
-                key={offer.id}
-                offer={offer}
-                onDetailClick={() => { }}
-                extraInfo={
-                  offer.nearestLocation && userCoords
-                    ? `${offer.nearestLocation.distanceKm.toFixed(1)} км`
-                    : undefined
+            {offers.map((offer) => {
+              if (!userCoords || !offer.locations?.length) {
+                return (
+                  <OfferCardList
+                    key={offer.id}
+                    offer={offer}
+                    onDetailClick={() => {}}
+                    nearestDistance={null}
+                  />
+                );
+              }
+
+              const distances = offer.locations.map((loc) => {
+                if (loc.latitude && loc.longitude) {
+                  return haversineDistance(userCoords, [
+                    loc.latitude,
+                    loc.longitude,
+                  ]);
                 }
-              />
-            ))}
+                return Infinity;
+              });
+
+              const nearestDistance = Math.min(...distances);
+
+              return (
+                <OfferCardList
+                  key={offer.id}
+                  offer={offer}
+                  onDetailClick={() => {}}
+                  nearestDistance={
+                    isFinite(nearestDistance) ? nearestDistance : null
+                  }
+                />
+              );
+            })}
           </div>
         </section>
       )}

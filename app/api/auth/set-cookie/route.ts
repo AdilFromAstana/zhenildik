@@ -3,16 +3,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
-    const { token } = await request.json();
+    const { access_token } = await request.json();
 
-    if (!token) {
+    if (!access_token) {
         return NextResponse.json({ message: 'Token is required' }, { status: 400 });
     }
 
     const response = new NextResponse(JSON.stringify({ success: true }));
 
     // Устанавливаем токен в куки с флагом HttpOnly для безопасности
-    response.cookies.set('token', token, {
+    response.cookies.set('access_token', access_token, {
         httpOnly: true, // Защита от XSS-атак
         secure: process.env.NODE_ENV === 'production', // Только по HTTPS в production
         maxAge: 60 * 60 * 24 * 7, // Срок действия: 1 неделя

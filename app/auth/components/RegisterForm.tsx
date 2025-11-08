@@ -6,11 +6,13 @@ export default function RegisterForm({
   password,
   onVerifyStart,
   onBackToLogin,
+  onAlreadyRegistered, // 👈 новый проп
 }: {
   identifier: string;
   password: string;
   onVerifyStart: (userId: number) => void;
   onBackToLogin: () => void;
+  onAlreadyRegistered: (identifier: string) => void;
 }) {
   const [name, setName] = useState("");
   const [localIdentifier, setLocalIdentifier] = useState(identifier);
@@ -46,10 +48,28 @@ export default function RegisterForm({
       const data = await res.json();
 
       if (res.ok && data.userId) {
+        // status: CODE_SENT или CODE_RESENT – нам не важно
         onVerifyStart(data.userId);
-      } else {
-        setErrorMsg(data.message || "Ошибка регистрации");
+        return;
       }
+
+      // 🔹 кейс: пользователь уже подтверждён
+      if (data.code === "USER_ALREADY_VERIFIED") {
+        // переносим email/телефон в логин и переключаем режим
+        onAlreadyRegistered(localIdentifier);
+        return;
+      }
+
+      // 🔹 кейс: регистрация уже начата с другим паролем
+      if (data.code === "SIGNUP_ALREADY_STARTED_DIFFERENT_PASSWORD") {
+        setErrorMsg(
+          data.message ||
+            "Регистрация уже была начата с другим паролем. Попробуйте войти или сбросить пароль."
+        );
+        return;
+      }
+
+      setErrorMsg(data.message || "Ошибка регистрации");
     } catch {
       setErrorMsg("Ошибка сети");
     } finally {

@@ -5,7 +5,7 @@ const AppFooter: React.FC = () => (
     <footer className="bg-gray-800 text-white">
         <div className="container mx-auto px-4 py-8 text-center text-sm md:flex md:justify-around md:text-left">
             <div className="mb-4 md:mb-0">
-                <Link href="/" className="text-xl font-bold mb-2 text-blue-400">iAkcii</Link>
+                <Link href="/" className="text-xl font-bold mb-2 text-blue-400">Skidka-bar</Link>
                 <p className="text-gray-400">Лучшие скидки и акции Казахстана.</p>
             </div>
             <div className="space-y-2">
@@ -25,7 +25,7 @@ const AppFooter: React.FC = () => (
             </div>
         </div>
         <div className="text-center text-gray-500 py-4 border-t border-gray-700 text-xs">
-            &copy; {new Date().getFullYear()} iAkcii. Все права защищены.
+            &copy; {new Date().getFullYear()} Skidka-bar. Все права защищены.
         </div>
     </footer>
 );

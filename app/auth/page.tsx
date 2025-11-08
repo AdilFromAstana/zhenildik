@@ -8,33 +8,31 @@ import VerifyForm from "./components/VerifyForm";
 
 export default function AuthPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [mode, setMode] = useState<"login" | "register" | "verify">("login");
   const [userId, setUserId] = useState<number | null>(null);
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
-  const searchParams = useSearchParams();
-  
-  const handleLoginSuccess = async (token: string) => {
+
+  const handleLoginSuccess = async (access_token: string) => {
     try {
-      await fetch('/api/auth/set-cookie', {
-        method: 'POST',
+      await fetch("/api/auth/set-cookie", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify({ token }),
+        body: JSON.stringify({ access_token }),
       });
 
-      const returnUrl = searchParams.get('returnUrl');
+      const returnUrl = searchParams.get("returnUrl");
 
-      const targetUrl = returnUrl || '/profile';
+      const targetUrl = returnUrl || "/profile";
 
       router.push(targetUrl);
-
     } catch (error) {
       console.error("Ошибка при установке куки и редиректе:", error);
-      // Обработка ошибки, возможно, уведомление пользователя
-      router.push('/');
+      router.push("/");
     }
   };
 
@@ -57,6 +55,7 @@ export default function AuthPage() {
             onSuccess={handleLoginSuccess}
             onNeedRegister={handleNeedRegister}
             onSwitchToRegister={() => setMode("register")}
+            onNeedVerify={handleStartVerify} // 👈 сюда прокидываем
           />
         )}
 
@@ -66,6 +65,10 @@ export default function AuthPage() {
             password={password}
             onVerifyStart={handleStartVerify}
             onBackToLogin={() => setMode("login")}
+            onAlreadyRegistered={(email) => {
+              setIdentifier(email); // предзаполним поле логина
+              setMode("login");
+            }}
           />
         )}
 

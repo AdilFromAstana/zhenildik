@@ -5,10 +5,12 @@ export default function LoginForm({
   onSuccess,
   onNeedRegister,
   onSwitchToRegister,
+  onNeedVerify, // 👈 новый проп
 }: {
   onSuccess: (token: string) => void;
   onNeedRegister: (email: string, pass: string) => void;
   onSwitchToRegister: () => void;
+  onNeedVerify: (userId: number) => void; // 👈 сигнатура
 }) {
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
@@ -34,11 +36,22 @@ export default function LoginForm({
 
       if (res.ok) {
         onSuccess(data.access_token);
-      } else if (data.message?.toLowerCase().includes("not found")) {
-        onNeedRegister(identifier, password);
-      } else {
-        setErrorMsg(data.message || "Ошибка входа");
+        return;
       }
+
+      // 🔹 новый кейс: аккаунт есть, но не подтверждён
+      if (data.code === "ACCOUNT_NOT_VERIFIED" && data.userId) {
+        onNeedVerify(data.userId);
+        return;
+      }
+
+      // твой старый кейс, если бэкенд так отвечает при "юзер не найден"
+      if (data.message?.toLowerCase().includes("not found")) {
+        onNeedRegister(identifier, password);
+        return;
+      }
+
+      setErrorMsg(data.message || "Ошибка входа");
     } catch {
       setErrorMsg("Ошибка сети");
     } finally {

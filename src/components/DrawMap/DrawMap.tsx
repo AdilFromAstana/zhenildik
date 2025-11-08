@@ -4,13 +4,26 @@ import MapContainer from "./MapContainer";
 import { PolygonInstance } from "@/types";
 
 export interface Location {
-  id: string;
-  offerId: number;
-  title: string;
+  id: number;
+  city: string;
+  district: string;
+  name: string;
+  geom: string | null;
+  fullAddress: string;
+  street: string;
+  houseNumber: string;
+  residentialComplex: string | null;
+  phone: string | null;
   latitude: number;
   longitude: number;
-  address: string;
-  categoryId: number;
+  workingHours: Record<
+    string,
+    {
+      open: string;
+      close: string;
+    }
+  > | null;
+  createdByUserId: number;
 }
 
 interface DrawMapProps {

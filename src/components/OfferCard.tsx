@@ -1,80 +1,115 @@
-// src/app/components/OfferCard.tsx
-import React from "react";
-import { MapPin, Tag } from "lucide-react";
+"use client";
+
+import { MapPin } from "lucide-react";
 import { Offer } from "app/offers/my/page";
 
 interface OfferCardProps {
   offer: Offer;
   onDetailClick: (offer: Offer) => void;
-  extraInfo?: any;
 }
 
-const OfferCard: React.FC<OfferCardProps> = ({
-  offer,
-  onDetailClick,
-  extraInfo,
-}) => {
-  console.log("extraInfo: ", extraInfo);
-  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    e.currentTarget.src =
-      "https://placehold.co/600x400/3B82F6/ffffff?text=Фото+акции";
-  };
-
+export default function OfferCard({ offer, onDetailClick }: OfferCardProps) {
   const imageSrc =
-    offer.posters && offer.posters.length > 0
-      ? offer.posters[0]
-      : "/images/placeholder.jpg";
+    offer.posters?.[0] ||
+    "https://placehold.co/400x300/94A3B8/FFFFFF?text=Фото";
+  const avatar =
+    offer.user?.avatar || "https://placehold.co/100x100/ccc/fff?text=U";
+  const userName = offer.user?.name || "Без имени";
+  const category = offer.category?.name || "Без категории";
+  const address = offer.locations?.[0]?.fullAddress || "Адрес не указан";
+  const hasDiscount =
+    Number(offer.discountPercent) > 0 && offer.oldPrice !== offer.newPrice;
+
+  const oldPrice = offer.oldPrice
+    ? Number(offer.oldPrice).toLocaleString("ru-RU")
+    : null;
+  const newPrice = offer.newPrice
+    ? Number(offer.newPrice).toLocaleString("ru-RU")
+    : null;
+
+  const discountPercent = hasDiscount
+    ? Math.round(Number(offer.discountPercent))
+    : null;
+  const discountAmount = hasDiscount
+    ? `${Math.round(Number(offer.discountAmount || 0)).toLocaleString(
+        "ru-RU"
+      )} ₸`
+    : null;
 
   return (
     <div
-      className="bg-white rounded-xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-xl cursor-pointer flex flex-col"
       onClick={() => onDetailClick(offer)}
+      className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all cursor-pointer flex flex-col h-full active:scale-[0.99]"
     >
-      {/* Фото акции */}
-      <div className="relative h-40 bg-gray-100">
+      {/* Фото и бейдж скидки */}
+      <div className="relative w-full aspect-[16/9] overflow-hidden bg-gray-100">
         <img
           src={imageSrc}
           alt={offer.title}
-          onError={handleImageError}
-          className="w-full h-full object-cover object-center"
+          className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+          onError={(e) => {
+            e.currentTarget.src =
+              "https://placehold.co/400x300/94A3B8/FFFFFF?text=Нет+Фото";
+          }}
         />
+        {discountPercent && (
+          <div className="absolute top-2 left-2 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded-full shadow">
+            -{discountPercent}%
+          </div>
+        )}
       </div>
 
-      <div className="p-4 flex flex-col flex-grow">
-        <div className="mb-2">
-          <p className="text-sm text-gray-500 flex items-center gap-1">
-            {offer.category && (
-              <>
-                <Tag className="w-3 h-3 text-gray-400" /> {offer.category.name}
-              </>
-            )}
-          </p>
+      {/* Контент */}
+      <div className="flex flex-col flex-1 p-3">
+        {/* Название */}
+        <h3 className="text-sm font-semibold text-gray-900 line-clamp-2 leading-snug mb-1">
+          {offer.title}
+        </h3>
 
-          <h3 className="font-semibold text-gray-800 text-lg mt-1 line-clamp-2">
-            {offer.title}
-          </h3>
-        </div>
-
-        <div className="flex items-end justify-between mt-auto">
-          <div className="flex items-center text-sm text-gray-500 ml-2">
-            <MapPin className="w-4 h-4 mr-1 text-blue-500" />
-            {extraInfo}
+        {/* Категория и пользователь */}
+        <div className="flex items-center gap-2 mt-1 mb-3 border-b border-gray-100 pb-2">
+          <img
+            src={avatar}
+            alt={userName}
+            className="w-7 h-7 rounded-full border border-gray-200 object-cover"
+          />
+          <div className="flex flex-col leading-none">
+            <span className="text-xs font-medium text-gray-800 truncate">
+              {userName}
+            </span>
+            <span className="text-[11px] text-gray-500 truncate">
+              {category}
+            </span>
           </div>
         </div>
 
-        {/* Кнопка “Подробнее” */}
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onDetailClick(offer);
-          }}
-          className="mt-3 w-full py-2 text-center text-sm font-medium bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition"
-        >
-          Подробнее
-        </button>
+        {/* Цена */}
+        <div className="mb-2">
+          <div className="flex items-center gap-2">
+            {newPrice && (
+              <span className="text-lg font-bold text-green-600">
+                {newPrice} ₸
+              </span>
+            )}
+            {oldPrice && hasDiscount && (
+              <span className="text-sm text-gray-400 line-through">
+                {oldPrice} ₸
+              </span>
+            )}
+          </div>
+          {discountAmount && (
+            <span className="text-xs text-green-600 font-semibold">
+              Выгода {discountAmount}
+            </span>
+          )}
+        </div>
+
+        {/* Адрес */}
+        <div className="flex items-start gap-1 text-xs text-gray-500 mt-auto">
+          <MapPin className="w-4 h-4 text-blue-500 shrink-0 mt-[2px]" />
+          <span className="truncate">{address}</span>
+        </div>
       </div>
     </div>
   );
-};
-
-export default OfferCard;
+}

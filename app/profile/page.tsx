@@ -2,113 +2,66 @@
 
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
-
-type UserData = {
-  name: string;
-  identifier: string; // email или телефон
-  avatarUrl?: string;
-};
+import { useAuth } from "@/providers/AuthProvider";
 
 export default function ProfilePage() {
-  const [user, setUser] = useState<UserData | null>(null);
+  const { user, loading, refresh } = useAuth();
 
-  const [loadingProfile, setLoadingProfile] = useState(true); // загрузка именно профиля
-  const [saving, setSaving] = useState(false); // общий saving для апдейтов
+  const [saving, setSaving] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
 
-  // поля смены пароля
   const [password, setPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  // аватар локально
+  const [editableName, setEditableName] = useState("");
+
+  // аватар
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  async function fetchProfile() {
-    setLoadingProfile(true);
-    setErrorMsg("");
-    setSuccessMsg("");
-
-    try {
-      const token = localStorage.getItem("token");
-
-      if (!token) {
-        setErrorMsg("Вы не авторизованы");
-        setLoadingProfile(false);
-        return;
-      }
-
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/user/me`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        // ожидаем что бэк вернёт { name, identifier, avatarUrl? }
-        const normalized: UserData = {
-          name: data.name ?? "",
-          identifier: data.identifier ?? "",
-          avatarUrl: data.avatarUrl ?? "",
-        };
-        setUser(normalized);
-      } else {
-        setErrorMsg(data.message || "Не удалось загрузить профиль");
-      }
-    } catch {
-      setErrorMsg("Ошибка сети при загрузке профиля");
-    } finally {
-      setLoadingProfile(false);
+  useEffect(() => {
+    if (user) {
+      setEditableName(user.name ?? "");
     }
+  }, [user]);
+
+  if (loading) {
+    return (
+      <main className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-10 text-gray-600">
+        Загрузка профиля...
+      </main>
+    );
   }
 
-  // грузим профиль один раз при заходе
-  useEffect(() => {
-    fetchProfile();
-  }, []);
+  if (!user) {
+    return (
+      <main className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-10 text-gray-600">
+        Вы не авторизованы.
+      </main>
+    );
+  }
 
-  // ----------------- 2. сохранить имя -----------------
+  // -------- сохранение профиля (имя) --------
   async function handleSaveProfile(e: React.FormEvent) {
     e.preventDefault();
-    if (!user) return;
-
     setSaving(true);
     setErrorMsg("");
     setSuccessMsg("");
 
     try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        setErrorMsg("Вы не авторизованы");
-        setSaving(false);
-        return;
-      }
-
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/user/update`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            name: user.name,
-          }),
-        }
-      );
+      const res = await fetch("/api/user/update", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: editableName }),
+      });
 
       if (res.ok) {
         setSuccessMsg("Профиль успешно обновлён");
-        // можно заново перезапросить профиль, если бэк может менять больше, чем имя
-        fetchProfile();
+        await refresh();
       } else {
-        const data = await res.json();
+        const data = await res.json().catch(() => ({}));
         setErrorMsg(data.message || "Ошибка обновления профиля");
       }
     } catch {
@@ -118,7 +71,7 @@ export default function ProfilePage() {
     }
   }
 
-  // ----------------- 3. смена пароля -----------------
+  // -------- смена пароля --------
   async function handleChangePassword(e: React.FormEvent) {
     e.preventDefault();
 
@@ -137,27 +90,16 @@ export default function ProfilePage() {
     setSuccessMsg("");
 
     try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        setErrorMsg("Вы не авторизованы");
-        setSaving(false);
-        return;
-      }
-
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/auth/change-password`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            oldPassword: password,
-            newPassword,
-          }),
-        }
-      );
+      const res = await fetch("/api/auth/change-password", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          oldPassword: password,
+          newPassword,
+        }),
+      });
 
       if (res.ok) {
         setSuccessMsg("Пароль успешно изменён");
@@ -165,7 +107,7 @@ export default function ProfilePage() {
         setNewPassword("");
         setConfirmPassword("");
       } else {
-        const data = await res.json();
+        const data = await res.json().catch(() => ({}));
         setErrorMsg(data.message || "Ошибка смены пароля");
       }
     } catch {
@@ -175,12 +117,11 @@ export default function ProfilePage() {
     }
   }
 
-  // ----------------- 4. загрузка аватарки -----------------
+  // -------- загрузка аватара --------
   async function handleAvatarUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // показать превью мгновенно
     const previewURL = URL.createObjectURL(file);
     setAvatarPreview(previewURL);
 
@@ -188,55 +129,25 @@ export default function ProfilePage() {
     setSuccessMsg("");
 
     try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        setErrorMsg("Вы не авторизованы");
-        return;
-      }
-
       const formData = new FormData();
       formData.append("avatar", file);
 
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/user/avatar`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          body: formData,
-        }
-      );
+      const res = await fetch("/api/user/avatar", {
+        method: "POST",
+        body: formData,
+      });
 
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
 
       if (res.ok) {
-        // сервер вернул новую ссылку на аватар
-        setUser((prev) =>
-          prev
-            ? {
-              ...prev,
-              avatarUrl: data.avatarUrl || prev.avatarUrl,
-            }
-            : prev
-        );
         setSuccessMsg("Аватар обновлён");
+        await refresh();
       } else {
         setErrorMsg(data.message || "Ошибка загрузки аватарки");
       }
     } catch {
       setErrorMsg("Ошибка сети при загрузке аватарки");
     }
-  }
-
-  // ----------------- рендер -----------------
-
-  if (loadingProfile) {
-    return (
-      <main className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-10 text-gray-600">
-        Загрузка профиля...
-      </main>
-    );
   }
 
   return (
@@ -258,11 +169,10 @@ export default function ProfilePage() {
           </div>
         )}
 
-        {/* ==== АВАТАР ==== */}
         <div className="flex items-center gap-4 mb-6">
           <div className="relative w-20 h-20">
             <Image
-              src={avatarPreview || user?.avatarUrl || "/default-avatar.png"}
+              src={avatarPreview || user.avatar || "/default-avatar.png"}
               alt="Аватар"
               fill
               className="rounded-full object-cover border border-gray-200 bg-gray-100"
@@ -297,12 +207,8 @@ export default function ProfilePage() {
             <input
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-800 
                 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
-              value={user?.name ?? ""}
-              onChange={(e) =>
-                setUser((prev) =>
-                  prev ? { ...prev, name: e.target.value } : prev
-                )
-              }
+              value={editableName}
+              onChange={(e) => setEditableName(e.target.value)}
               required
             />
           </div>
@@ -313,7 +219,7 @@ export default function ProfilePage() {
             </label>
             <input
               className="w-full border border-gray-200 rounded-lg px-3 py-2 text-gray-500 bg-gray-50 cursor-not-allowed"
-              value={user?.identifier ?? ""}
+              value={user.identifier}
               disabled
             />
           </div>
@@ -322,9 +228,10 @@ export default function ProfilePage() {
             type="submit"
             disabled={saving}
             className={`w-full rounded-lg py-2.5 font-semibold text-white shadow-sm transition 
-              ${saving
-                ? "bg-blue-400 cursor-not-allowed"
-                : "bg-blue-600 hover:bg-blue-700"
+              ${
+                saving
+                  ? "bg-blue-400 cursor-not-allowed"
+                  : "bg-blue-600 hover:bg-blue-700"
               }
             `}
           >
@@ -374,9 +281,10 @@ export default function ProfilePage() {
             type="submit"
             disabled={saving}
             className={`w-full rounded-lg py-2.5 font-semibold text-white shadow-sm transition 
-              ${saving
-                ? "bg-green-400 cursor-not-allowed"
-                : "bg-green-600 hover:bg-green-700"
+              ${
+                saving
+                  ? "bg-green-400 cursor-not-allowed"
+                  : "bg-green-600 hover:bg-green-700"
               }
             `}
           >
