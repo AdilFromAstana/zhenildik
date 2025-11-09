@@ -16,6 +16,12 @@ export interface OfferFilters {
   discountMax?: number | null;
   sortBy?: "createdAt" | "discountPercent" | "newPrice" | "title";
   sortOrder?: "ASC" | "DESC";
+  dishType?: string;
+  cuisine?: string;
+  deal?: string;
+  protein?: string;
+  technique?: string;
+  mealType?: string;
 }
 
 interface MobileFiltersBarProps {
@@ -36,72 +42,146 @@ export default function MobileFiltersBar({
   }));
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const [stats, setStats] = useState<any>(null);
 
   const localCategories = Array.isArray(categories)
     ? categories.map((c) => ({ ...c }))
     : [];
 
+  // Открытие модалки фильтров
   useEffect(() => {
     const open = () => setIsOpen(true);
     document.addEventListener("openFilters", open);
     return () => document.removeEventListener("openFilters", open);
   }, []);
 
+  // ✅ Чтение фильтров из cookie при загрузке
+  useEffect(() => {
+    const cookieMatch = document.cookie.match(/offersFilters=([^;]+)/);
+    if (cookieMatch) {
+      try {
+        const parsed = JSON.parse(decodeURIComponent(cookieMatch[1]));
+        setFilters((prev) => ({ ...prev, ...parsed }));
+        setSearch(parsed.search || "");
+      } catch {
+        console.warn("Ошибка при чтении offersFilters cookie");
+      }
+    }
+  }, []);
+
+  // 🔹 Подгрузка статистики (meta-stats)
+  useEffect(() => {
+    if (isOpen) {
+      fetch(`${process.env.NEXT_PUBLIC_API_URL}/offers/meta-stats?cityCode=astana`)
+        .then((res) => res.json())
+        .then((data) => setStats(data))
+        .catch((err) => console.error("Failed to load meta stats:", err));
+    }
+  }, [isOpen]);
+
   const handleChange = (key: keyof OfferFilters, value: any) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
   };
 
-  // ❗ Умный выбор сортировки + направления
   const handleSortChange = (value: string) => {
     let sortBy: OfferFilters["sortBy"] = "createdAt";
     let sortOrder: OfferFilters["sortOrder"] = "DESC";
 
     switch (value) {
-      case "createdAt":
-        sortBy = "createdAt";
-        sortOrder = "DESC"; // новые сверху
-        break;
       case "discountPercent":
         sortBy = "discountPercent";
-        sortOrder = "DESC"; // самые большие скидки сверху
+        sortOrder = "DESC";
         break;
       case "newPriceAsc":
         sortBy = "newPrice";
-        sortOrder = "ASC"; // самые дешевые сверху
+        sortOrder = "ASC";
         break;
       case "newPriceDesc":
         sortBy = "newPrice";
-        sortOrder = "DESC"; // самые дорогие сверху
+        sortOrder = "DESC";
         break;
       case "title":
         sortBy = "title";
-        sortOrder = "ASC"; // по алфавиту
+        sortOrder = "ASC";
         break;
       default:
         sortBy = "createdAt";
         sortOrder = "DESC";
     }
 
-    setFilters((prev) => ({
-      ...prev,
-      sortBy,
-      sortOrder,
-    }));
+    setFilters((prev) => ({ ...prev, sortBy, sortOrder }));
   };
 
+  // ✅ Применение фильтров (запись в cookie)
   const handleApply = () => {
-    onApply({ ...filters, search });
+    const fullFilters = { ...filters, search };
+    document.cookie = `offersFilters=${encodeURIComponent(
+      JSON.stringify(fullFilters)
+    )}; path=/; max-age=${60 * 60 * 24 * 7}`; // 7 дней
+
+    onApply(fullFilters);
     setIsOpen(false);
   };
 
+  // ✅ Сброс фильтров (очистка cookie)
   const handleReset = () => {
+    document.cookie =
+      "offersFilters=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+
     setFilters({
       ...defaultFilters,
       sortBy: "createdAt",
       sortOrder: "DESC",
+      dishType: "",
+      cuisine: "",
+      deal: "",
+      protein: "",
+      technique: "",
+      mealType: "",
     });
     setSearch("");
   };
+
+  // Компонент блока мета-фильтров
+  const makeChipBlock = (
+    title: string,
+    key: keyof OfferFilters,
+    options: string[]
+  ) => (
+    <div className="mb-4">
+      <label className="block text-sm font-medium mb-1 text-gray-700">
+        {title}
+      </label>
+      <div className="flex flex-wrap gap-2">
+        {options.map((opt) => {
+          const count = stats?.[key]?.[opt] ?? 0;
+          const disabled = count === 0;
+          const selected = filters[key] === opt;
+
+          return (
+            <button
+              key={opt}
+              disabled={disabled}
+              onClick={() =>
+                !disabled && handleChange(key, selected ? "" : opt)
+              }
+              className={`px-3 py-1 text-sm rounded-full border transition ${disabled
+                  ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
+                  : selected
+                    ? "bg-blue-600 text-white border-blue-600"
+                    : "bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100"
+                }`}
+            >
+              {opt}
+              {!disabled && (
+                <span className="ml-1 text-xs text-gray-500">({count})</span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
 
   return (
     <>
@@ -129,7 +209,7 @@ export default function MobileFiltersBar({
                   placeholder="Введите название или описание..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
@@ -141,7 +221,7 @@ export default function MobileFiltersBar({
                 <select
                   value={filters.categoryId || ""}
                   onChange={(e) => handleChange("categoryId", e.target.value)}
-                  className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">Все категории</option>
                   {localCategories.map((cat) => (
@@ -152,39 +232,58 @@ export default function MobileFiltersBar({
                 </select>
               </div>
 
-              {/* Тип скидки */}
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-1 text-gray-700">
-                  Тип скидки
-                </label>
-                <select
-                  value={filters.discountType || "Все"}
-                  onChange={(e) => handleChange("discountType", e.target.value)}
-                  className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="Все">Все</option>
-                  <option value="Процент">Процент</option>
-                  <option value="Фиксированная сумма">
-                    Фиксированная сумма
-                  </option>
-                </select>
-              </div>
+              {makeChipBlock("Тип блюда", "dishType", [
+                "бургер",
+                "донер",
+                "пицца",
+                "суши",
+                "лапша",
+                "салат",
+                "десерт",
+                "суп",
+                "комбо",
+              ])}
 
-              {/* Актуальность */}
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-1 text-gray-700">
-                  Актуальность
-                </label>
-                <select
-                  value={filters.validity || "Все"}
-                  onChange={(e) => handleChange("validity", e.target.value)}
-                  className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="Все">Все</option>
-                  <option value="Активные">Активные</option>
-                  <option value="Истекшие">Истекшие</option>
-                </select>
-              </div>
+              {makeChipBlock("Кухня", "cuisine", [
+                "европейская",
+                "итальянская",
+                "японская",
+                "азиатская",
+                "узбекская",
+                "казахская",
+                "кофейня",
+              ])}
+
+              {makeChipBlock("Тип предложения", "deal", [
+                "комбо",
+                "акция",
+                "новинка",
+              ])}
+
+              {makeChipBlock("Основной ингредиент", "protein", [
+                "курица",
+                "говядина",
+                "баранина",
+                "свинина",
+                "рыба",
+                "креветки",
+                "сыр",
+                "яйцо",
+              ])}
+
+              {makeChipBlock("Техника приготовления", "technique", [
+                "гриль",
+                "фритюр",
+                "печь",
+                "варка",
+                "wok",
+              ])}
+
+              {makeChipBlock("Приём пищи", "mealType", [
+                "завтрак",
+                "обед",
+                "ужин",
+              ])}
 
               {/* Цена */}
               <div className="mb-4">
@@ -202,7 +301,7 @@ export default function MobileFiltersBar({
                         e.target.value ? Number(e.target.value) : null
                       )
                     }
-                    className="w-1/2 border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-1/2 border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
                   />
                   <input
                     type="number"
@@ -214,7 +313,7 @@ export default function MobileFiltersBar({
                         e.target.value ? Number(e.target.value) : null
                       )
                     }
-                    className="w-1/2 border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-1/2 border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
               </div>
@@ -235,7 +334,7 @@ export default function MobileFiltersBar({
                         e.target.value ? Number(e.target.value) : null
                       )
                     }
-                    className="w-1/2 border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-1/2 border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
                   />
                   <input
                     type="number"
@@ -247,7 +346,7 @@ export default function MobileFiltersBar({
                         e.target.value ? Number(e.target.value) : null
                       )
                     }
-                    className="w-1/2 border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-1/2 border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
               </div>
@@ -258,33 +357,28 @@ export default function MobileFiltersBar({
                   Сортировать по
                 </label>
                 <select
-                  // здесь мы держим "виртуальные" значения, а внутри мапим в sortBy/sortOrder
                   value={
                     filters.sortBy === "discountPercent"
                       ? "discountPercent"
                       : filters.sortBy === "newPrice" &&
                         filters.sortOrder === "ASC"
-                      ? "newPriceAsc"
-                      : filters.sortBy === "newPrice" &&
-                        filters.sortOrder === "DESC"
-                      ? "newPriceDesc"
-                      : filters.sortBy === "title"
-                      ? "title"
-                      : "createdAt"
+                        ? "newPriceAsc"
+                        : filters.sortBy === "newPrice" &&
+                          filters.sortOrder === "DESC"
+                          ? "newPriceDesc"
+                          : filters.sortBy === "title"
+                            ? "title"
+                            : "createdAt"
                   }
                   onChange={(e) => handleSortChange(e.target.value)}
-                  className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="createdAt">Новизне (новые сверху)</option>
                   <option value="discountPercent">
                     Скидке (большая скидка сверху)
                   </option>
-                  <option value="newPriceAsc">
-                    Цене (самые дешёвые сверху)
-                  </option>
-                  <option value="newPriceDesc">
-                    Цене (самые дорогие сверху)
-                  </option>
+                  <option value="newPriceAsc">Цене (дешёвые сверху)</option>
+                  <option value="newPriceDesc">Цене (дорогие сверху)</option>
                   <option value="title">Названию (A → Я)</option>
                 </select>
               </div>

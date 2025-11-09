@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
 import OffersList from "./OffersList";
 import MobileFiltersBar from "./MobileFiltersBar";
 import { Offer } from "app/offers/my/page";
@@ -26,30 +25,53 @@ export default function ClientOffersPage({
     if (!initialized.current) {
       initialized.current = true;
       setHasMore(currentPage < totalPages);
-      console.log("🟩 INIT FIX:", { currentPage, totalPages });
     }
   }, [currentPage, totalPages]);
 
-  console.log("🔥 [RENDER]", { page, totalPages, hasMore });
+  useEffect(() => {
+    // Чтение фильтров из cookie
+    const cookieMatch = document.cookie.match(/offersFilters=([^;]+)/);
+    if (cookieMatch) {
+      try {
+        const parsed = JSON.parse(decodeURIComponent(cookieMatch[1]));
+        setActiveFilters(parsed);
+        handleApplyFilters(parsed, true);
+      } catch {
+        console.warn("Ошибка при чтении offersFilters cookie");
+      }
+    }
+  }, []);
 
   const fetchOffers = async (params: URLSearchParams) => {
     const url = new URL(`${process.env.NEXT_PUBLIC_API_URL}/offers`);
-    params.forEach((value, key) => url.searchParams.set(key, value));
+    params.forEach((v, k) => url.searchParams.set(k, v));
 
     const res = await fetch(url.toString(), { cache: "no-store" });
     const { data, total } = await res.json();
-
     const limit = Number(url.searchParams.get("limit") ?? "20");
     const totalPages = Math.ceil(total / limit);
-
     return { data, total, totalPages };
   };
 
-  const handleApplyFilters = async (filters: any) => {
+  const appendMetaFilters = (filters: any, params: URLSearchParams) => {
+    if (filters.dishType) params.append("dishType", filters.dishType);
+    if (filters.cuisine) params.append("cuisine", filters.cuisine);
+    if (filters.deal) params.append("deal", filters.deal);
+    if (filters.protein) params.append("protein", filters.protein);
+    if (filters.technique) params.append("technique", filters.technique);
+    if (filters.mealType) params.append("mealType", filters.mealType);
+  };
+
+  const handleApplyFilters = async (filters: any, isInit = false) => {
+    // 💾 Сохраняем фильтры в cookie
+    document.cookie = `offersFilters=${encodeURIComponent(
+      JSON.stringify(filters)
+    )}; path=/; max-age=${60 * 60 * 24 * 7}`; // 7 дней
+
     setLoading(true);
-    const params = new URLSearchParams();
     setActiveFilters(filters);
 
+    const params = new URLSearchParams();
     if (filters.search) params.append("search", filters.search);
     if (filters.categoryId) params.append("categoryId", filters.categoryId);
     if (filters.discountType && filters.discountType !== "Все")
@@ -61,6 +83,7 @@ export default function ClientOffersPage({
       params.append("discountMin", String(filters.discountMin));
     if (filters.discountMax)
       params.append("discountMax", String(filters.discountMax));
+
     if (filters.validity && filters.validity !== "Все") {
       if (filters.validity === "Активные") params.append("isActiveNow", "true");
       if (filters.validity === "Истекшие")
@@ -69,6 +92,7 @@ export default function ClientOffersPage({
 
     if (filters.sortBy) params.append("sortBy", filters.sortBy);
     if (filters.sortOrder) params.append("sortOrder", filters.sortOrder);
+    appendMetaFilters(filters, params);
 
     params.append("page", "1");
     params.append("limit", "20");
@@ -78,6 +102,7 @@ export default function ClientOffersPage({
       setOffers(data);
       setPage(1);
       setHasMore(totalPages > 1);
+      if (!isInit) console.log("✅ фильтры применены");
     } catch (err) {
       console.error(err);
     } finally {
@@ -97,7 +122,6 @@ export default function ClientOffersPage({
     });
 
     const filters = activeFilters ?? {};
-
     if (filters.search) params.append("search", filters.search);
     if (filters.categoryId) params.append("categoryId", filters.categoryId);
     if (filters.discountType && filters.discountType !== "Все")
@@ -108,24 +132,24 @@ export default function ClientOffersPage({
       params.append("discountMin", String(filters.discountMin));
     if (filters.discountMax)
       params.append("discountMax", String(filters.discountMax));
+
     if (filters.validity && filters.validity !== "Все") {
       if (filters.validity === "Активные") params.append("isActiveNow", "true");
       if (filters.validity === "Истекшие")
         params.append("isActiveNow", "false");
     }
+
     if (filters.sortBy) params.append("sortBy", filters.sortBy);
     if (filters.sortOrder) params.append("sortOrder", filters.sortOrder);
+    appendMetaFilters(filters, params);
 
     try {
       const { data, totalPages } = await fetchOffers(params);
-
       if (data?.length > 0) {
         setOffers((prev) => [...prev, ...data]);
         setPage(nextPage);
         setHasMore(nextPage < totalPages);
-      } else {
-        setHasMore(false);
-      }
+      } else setHasMore(false);
     } catch (err) {
       console.error(err);
       setHasMore(false);

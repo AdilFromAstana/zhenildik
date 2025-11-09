@@ -12,7 +12,9 @@ export default function OfferListHorizontal({
   return (
     <div className="mb-6">
       <h2 className="text-lg font-semibold mb-3 text-gray-900">{title}</h2>
-      <div className="flex overflow-x-scroll space-x-4 pb-4">
+      <div
+        className="flex overflow-x-auto space-x-4 pb-4 scrollbar-hide"
+      >
         {offers.map((o) => (
           <Link
             key={o.id}

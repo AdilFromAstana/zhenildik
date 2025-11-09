@@ -25,7 +25,7 @@ const HomePage: React.FC = () => {
   };
 
   const handleGoToCatalog = () => {
-    router.push("/all-offers"); // переход в каталог
+    router.push("/offers"); // переход в каталог
   };
 
   return (
