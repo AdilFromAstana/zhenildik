@@ -2,18 +2,14 @@
 
 import { MapPin } from "lucide-react";
 import { Offer } from "app/offers/my/page";
+import Link from "next/link";
 
 interface OfferCardProps {
   offer: Offer;
-  onDetailClick: (offer: Offer) => void;
   nearestDistance?: number | null;
 }
 
-export default function OfferCard({
-  offer,
-  onDetailClick,
-  nearestDistance,
-}: OfferCardProps) {
+export default function OfferCard({ offer, nearestDistance }: OfferCardProps) {
   const imageSrc =
     offer.posters?.[0] ||
     "https://placehold.co/600x400/D1D5DB/4B5563?text=Нет+Фото";
@@ -38,8 +34,8 @@ export default function OfferCard({
     discountPercent && oldPriceNum && newPriceNum && oldPriceNum > newPriceNum;
 
   return (
-    <div
-      onClick={() => onDetailClick(offer)}
+    <Link
+      href={`/offer/${offer.id}`}
       className="bg-white rounded-2xl border border-gray-100 shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden cursor-pointer flex flex-col"
     >
       <div className="relative w-full h-48 bg-gray-100">
@@ -116,6 +112,6 @@ export default function OfferCard({
           )}
         </div>
       </div>
-    </div>
+    </Link>
   );
 }

@@ -9,6 +9,35 @@ import { useOfferStats } from "../../../src/hooks/useOfferStats";
 import OfferStatusFilter from "./components/OfferStatusFilter";
 import axiosInstance from "@/lib/axiosInstance";
 
+export interface Location {
+  id: number;
+  city: string;
+  district: string;
+  name: string;
+  geom: string | null;
+  fullAddress: string;
+  street: string;
+  houseNumber: string;
+  residentialComplex: string | null;
+  phone: string | null;
+  latitude: number;
+  longitude: number;
+  workingHours: Record<
+    | "monday"
+    | "tuesday"
+    | "wednesday"
+    | "thursday"
+    | "friday"
+    | "saturday"
+    | "sunday",
+    {
+      open: string;
+      close: string;
+    }
+  > | null;
+  createdByUserId: number;
+}
+
 export interface Offer {
   id: number;
   title: string;
@@ -20,7 +49,7 @@ export interface Offer {
     name: string;
     icon: string | null;
   } | null;
-  cityCode: string | null;
+  cityCode: string;
   benefitKind: "NEW_PRICE" | "PERCENT_OFF" | "BUY_X_GET_Y" | string;
   scope: "ITEM" | "ORDER" | "GLOBAL" | string;
   oldPrice: string | null;
@@ -40,28 +69,7 @@ export interface Offer {
   startDate: string | null;
   endDate: string | null;
   posters: string[];
-  locations: {
-    id: number;
-    city: string;
-    district: string;
-    name: string;
-    geom: string | null;
-    fullAddress: string;
-    street: string;
-    houseNumber: string;
-    residentialComplex: string | null;
-    phone: string | null;
-    latitude: number;
-    longitude: number;
-    workingHours: Record<
-      string,
-      {
-        open: string;
-        close: string;
-      }
-    > | null;
-    createdByUserId: number;
-  }[];
+  locations: Location[];
   user: {
     id: number;
     name: string;

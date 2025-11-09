@@ -1,17 +1,17 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { Offer } from "app/offers/my/page";
 import DrawMap from "@/components/DrawMap/DrawMap";
-import OfferCard from "@/components/OfferCard";
 import OfferCardList from "./OfferCardList";
 
 const MobileMapButton = dynamic(() => import("@/components/MobileMapButton"), {
   ssr: false,
 });
 
+// 📍 Функция расчёта расстояния между координатами
 function haversineDistance([lat1, lon1]: number[], [lat2, lon2]: number[]) {
-  const R = 6371; // радиус Земли в км
+  const R = 6371; // Радиус Земли в км
   const toRad = (x: number) => (x * Math.PI) / 180;
   const dLat = toRad(lat2 - lat1);
   const dLon = toRad(lon2 - lon1);
@@ -25,12 +25,20 @@ function haversineDistance([lat1, lon1]: number[], [lat2, lon2]: number[]) {
 
 interface OffersListProps {
   offers: Offer[];
-  total: number;
+  hasMore: boolean;
+  loading: boolean;
+  onLoadMore: () => void;
 }
 
-export default function OffersList({ offers = [], total }: OffersListProps) {
+export default function OffersList({
+  offers = [],
+  hasMore,
+  loading,
+  onLoadMore,
+}: OffersListProps) {
   const [displayMode, setDisplayMode] = useState<"list" | "map">("list");
   const [userCoords, setUserCoords] = useState<[number, number] | null>(null);
+  const loaderRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (!navigator.geolocation) return;
@@ -46,18 +54,38 @@ export default function OffersList({ offers = [], total }: OffersListProps) {
     );
   }, []);
 
-  const locations = useMemo(() => {
-    return offers.flatMap((offer) =>
-      (offer.locations || []).map((loc) => {
-        return loc;
-      })
+  useEffect(() => {
+    if (!hasMore || !loaderRef.current) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (entry.isIntersecting && !loading) {
+          console.log("🔹 Loader виден, загружаем следующую страницу...");
+          onLoadMore();
+        }
+      },
+      { threshold: 0.2 }
     );
+
+    const current = loaderRef.current;
+    observer.observe(current);
+
+    if (current.getBoundingClientRect().top < window.innerHeight) {
+      console.log("🔹 Loader уже виден при монтировании");
+      onLoadMore();
+    }
+
+    return () => observer.disconnect();
+  }, [offers, hasMore, loading]);
+
+  const locations = useMemo(() => {
+    return offers.flatMap((offer) => offer.locations || []);
   }, [offers]);
 
   return (
     <>
       {displayMode === "map" ? (
-        // 📍 Передаём координаты пользователя в карту
         <DrawMap locations={locations} userCoords={userCoords} />
       ) : (
         <section>
@@ -68,12 +96,12 @@ export default function OffersList({ offers = [], total }: OffersListProps) {
                   <OfferCardList
                     key={offer.id}
                     offer={offer}
-                    onDetailClick={() => {}}
                     nearestDistance={null}
                   />
                 );
               }
 
+              // 🧭 считаем ближайшее расстояние
               const distances = offer.locations.map((loc) => {
                 if (loc.latitude && loc.longitude) {
                   return haversineDistance(userCoords, [
@@ -90,7 +118,6 @@ export default function OffersList({ offers = [], total }: OffersListProps) {
                 <OfferCardList
                   key={offer.id}
                   offer={offer}
-                  onDetailClick={() => {}}
                   nearestDistance={
                     isFinite(nearestDistance) ? nearestDistance : null
                   }
@@ -98,13 +125,20 @@ export default function OffersList({ offers = [], total }: OffersListProps) {
               );
             })}
           </div>
+
+          {hasMore && (
+            <div
+              ref={loaderRef}
+              className="flex justify-center py-6 text-gray-500 text-sm"
+            >
+              {loading ? "Загрузка..." : "Прокрутите вниз для загрузки"}
+            </div>
+          )}
         </section>
       )}
 
       <MobileMapButton
-        onClick={() => {
-          setDisplayMode((v) => (v === "list" ? "map" : "list"));
-        }}
+        onClick={() => setDisplayMode((v) => (v === "list" ? "map" : "list"))}
       />
     </>
   );
