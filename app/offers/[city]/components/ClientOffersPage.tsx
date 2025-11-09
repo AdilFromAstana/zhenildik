@@ -29,18 +29,56 @@ export default function ClientOffersPage({
   }, [currentPage, totalPages]);
 
   useEffect(() => {
-    // Чтение фильтров из cookie
     const cookieMatch = document.cookie.match(/offersFilters=([^;]+)/);
-    if (cookieMatch) {
-      try {
-        const parsed = JSON.parse(decodeURIComponent(cookieMatch[1]));
-        setActiveFilters(parsed);
+    if (!cookieMatch) return;
+
+    try {
+      const parsed = JSON.parse(decodeURIComponent(cookieMatch[1]));
+      setActiveFilters(parsed);
+
+      const same =
+        JSON.stringify(parsed) === JSON.stringify(defaultFilters);
+
+      if (!same) {
         handleApplyFilters(parsed, true);
-      } catch {
-        console.warn("Ошибка при чтении offersFilters cookie");
       }
+    } catch {
+      console.warn("Ошибка при чтении offersFilters cookie");
     }
   }, []);
+
+  const [restoring, setRestoring] = useState(true);
+
+  useEffect(() => {
+    const savedState = sessionStorage.getItem("offersPageState");
+    if (savedState) {
+      try {
+        const parsed = JSON.parse(savedState);
+        if (parsed.citySlug === citySlug) {
+          setOffers(parsed.offers);
+          setPage(parsed.page);
+          setHasMore(parsed.hasMore);
+
+          // ждём пока DOM готов, затем скроллим
+          setTimeout(() => {
+            window.scrollTo(0, parsed.scrollY || 0);
+
+            // через короткий таймаут убираем крутилку
+            setTimeout(() => setRestoring(false), 500);
+          }, 100);
+        } else {
+          setRestoring(false);
+        }
+
+        sessionStorage.removeItem("offersPageState");
+      } catch {
+        console.warn("Ошибка восстановления состояния offersPageState");
+        setRestoring(false);
+      }
+    } else {
+      setRestoring(false);
+    }
+  }, [citySlug]);
 
   const fetchOffers = async (params: URLSearchParams) => {
     const url = new URL(`${process.env.NEXT_PUBLIC_API_URL}/offers`);
@@ -160,6 +198,12 @@ export default function ClientOffersPage({
 
   return (
     <>
+      {restoring && (
+        <div className="fixed inset-0 bg-white/60 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
+        </div>
+      )}
+
       <MobileFiltersBar
         categories={categories}
         defaultFilters={defaultFilters}
@@ -167,6 +211,8 @@ export default function ClientOffersPage({
       />
 
       <OffersList
+        citySlug={citySlug}
+        page={page}
         offers={offers}
         hasMore={hasMore}
         loading={loading}

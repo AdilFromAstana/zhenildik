@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { Offer } from "app/offers/my/page";
 import DrawMap from "@/components/DrawMap/DrawMap";
 import OfferCardList from "./OfferCardList";
+import OfferCard from "./OfferCardList";
 
 const MobileMapButton = dynamic(() => import("@/components/MobileMapButton"), {
   ssr: false,
@@ -28,6 +29,8 @@ interface OffersListProps {
   hasMore: boolean;
   loading: boolean;
   onLoadMore: () => void;
+  citySlug: string;
+  page: number;
 }
 
 export default function OffersList({
@@ -35,6 +38,8 @@ export default function OffersList({
   hasMore,
   loading,
   onLoadMore,
+  citySlug,
+  page
 }: OffersListProps) {
   const [displayMode, setDisplayMode] = useState<"list" | "map">("list");
   const [userCoords, setUserCoords] = useState<[number, number] | null>(null);
@@ -93,10 +98,14 @@ export default function OffersList({
             {offers.map((offer) => {
               if (!userCoords || !offer.locations?.length) {
                 return (
-                  <OfferCardList
+                  <OfferCard
                     key={offer.id}
                     offer={offer}
                     nearestDistance={null}
+                    offers={offers}
+                    page={page}
+                    hasMore={hasMore}
+                    citySlug={citySlug}
                   />
                 );
               }
@@ -118,9 +127,11 @@ export default function OffersList({
                 <OfferCardList
                   key={offer.id}
                   offer={offer}
-                  nearestDistance={
-                    isFinite(nearestDistance) ? nearestDistance : null
-                  }
+                  nearestDistance={nearestDistance}
+                  offers={offers}
+                  page={page}
+                  hasMore={hasMore}
+                  citySlug={citySlug}
                 />
               );
             })}

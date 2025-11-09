@@ -2,14 +2,20 @@
 
 import { MapPin } from "lucide-react";
 import { Offer } from "app/offers/my/page";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 interface OfferCardProps {
   offer: Offer;
   nearestDistance?: number | null;
+  offers: Offer[];
+  page: number;
+  hasMore: boolean;
+  citySlug: string;
 }
 
-export default function OfferCard({ offer, nearestDistance }: OfferCardProps) {
+export default function OfferCard({ offer, nearestDistance, offers, citySlug, hasMore, page }: OfferCardProps) {
+
+  const router = useRouter();
   const imageSrc =
     offer.posters?.[0] ||
     "https://placehold.co/600x400/D1D5DB/4B5563?text=Нет+Фото";
@@ -33,9 +39,22 @@ export default function OfferCard({ offer, nearestDistance }: OfferCardProps) {
   const hasDiscount =
     discountPercent && oldPriceNum && newPriceNum && oldPriceNum > newPriceNum;
 
+
+  const handleOfferClick = () => {
+    const state = {
+      offers,
+      page,
+      hasMore,
+      citySlug,
+      scrollY: window.scrollY,
+    };
+    sessionStorage.setItem("offersPageState", JSON.stringify(state));
+    router.push(`/offer/${offer.id}`);
+  };
+
   return (
-    <Link
-      href={`/offer/${offer.id}`}
+    <div
+      onClick={handleOfferClick}
       className="bg-white rounded-2xl border border-gray-100 shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden cursor-pointer flex flex-col"
     >
       <div className="relative w-full h-48 bg-gray-100">
@@ -112,6 +131,6 @@ export default function OfferCard({ offer, nearestDistance }: OfferCardProps) {
           )}
         </div>
       </div>
-    </Link>
+    </div>
   );
 }
