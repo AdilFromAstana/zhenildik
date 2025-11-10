@@ -1,6 +1,4 @@
-// app/components/offer-form/Step1BasicInfo.tsx
-import React, { useState } from "react";
-// import AddressSearchMap from "./AddressSearchMap";
+import React from "react";
 import BasicInfoSection from "./BasicInfoSection";
 
 type Props = {
@@ -29,6 +27,7 @@ const Step1BasicInfo: React.FC<Props> = ({
   return (
     <>
       <BasicInfoSection
+        readOnly={false}
         title={values.title}
         description={values.description}
         offerType={values.offerType}

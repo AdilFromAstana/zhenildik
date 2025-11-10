@@ -4,7 +4,7 @@ import "./globals.css";
 import ReactQueryClientProvider from "@/providers/QueryClientProvider";
 import AppClientLayout from "@/providers/AppClientLayout";
 import { AuthProvider } from "@/providers/AuthProvider";
-// import { MapProvider } from "@/providers/MapProvider";
+import Script from "next/script";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -71,6 +71,27 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ru">
+      <meta
+        name="google-adsense-account"
+        content="ca-pub-6384039856818935"
+      ></meta>
+      <Script
+        id="schema-org"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            name: "Skidka-bar.kz",
+            url: "https://skidka-bar.kz",
+            logo: "https://skidka-bar.kz/logo.png",
+            sameAs: [
+              "https://www.instagram.com/skidka_bar",
+              "https://t.me/skidka_bar",
+            ],
+          }),
+        }}
+      />
       <body
         suppressHydrationWarning
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50 text-gray-900 w-full`}

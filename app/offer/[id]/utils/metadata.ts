@@ -26,7 +26,7 @@ export async function generateOfferMetadata({
       ? `выгода ${getDiscountAmount(offer)} ₸`
       : "";
 
-  const cityLabel = offer.cityName || offer.cityCode || "";
+  const cityLabel = offer.cityCode || "";
   const baseTitle = discountText
     ? `${offer.title} ${discountText}`
     : offer.title;

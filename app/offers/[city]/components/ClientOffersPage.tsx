@@ -36,8 +36,7 @@ export default function ClientOffersPage({
       const parsed = JSON.parse(decodeURIComponent(cookieMatch[1]));
       setActiveFilters(parsed);
 
-      const same =
-        JSON.stringify(parsed) === JSON.stringify(defaultFilters);
+      const same = JSON.stringify(parsed) === JSON.stringify(defaultFilters);
 
       if (!same) {
         handleApplyFilters(parsed, true);
@@ -205,6 +204,7 @@ export default function ClientOffersPage({
       )}
 
       <MobileFiltersBar
+        citySlug={citySlug}
         categories={categories}
         defaultFilters={defaultFilters}
         onApply={handleApplyFilters}

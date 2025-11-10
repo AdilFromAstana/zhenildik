@@ -39,7 +39,7 @@ export default function OfferForm() {
   const router = useRouter();
   const totalSteps = 4;
 
-  const [currentStep, setCurrentStep] = useState(1);
+  const [currentStep, setCurrentStep] = useState(4);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalCityOpen, setModalCityOpen] = useState(false);
   const [isBranchModalOpen, setBranchModalOpen] = useState(false);

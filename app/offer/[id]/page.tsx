@@ -19,6 +19,7 @@ import {
 import OfferListHorizontal from "./components/OfferListHorizontal";
 import Link from "next/link";
 import { headers } from "next/headers";
+import BackButton from "./components/BackButton";
 
 export const generateMetadata = generateOfferMetadata;
 
@@ -38,9 +39,8 @@ export default async function OfferPage({
 
   const headersList = await headers();
   const referer = headersList.get("referer");
-  const backUrl = referer && !referer.includes(`/offer/${offer.id}`)
-    ? referer
-    : "/offers"; // fallback если пришли напрямую
+  const backUrl =
+    referer && !referer.includes(`/offer/${offer.id}`) ? referer : "/offers";
 
   const discountAmount = getDiscountAmount(offer);
 
@@ -48,15 +48,8 @@ export default async function OfferPage({
     <div className="bg-gray-50 min-h-screen pb-16">
       <OfferJsonLd offer={offer} />
 
-      {/* HERO */}
       <section className="relative w-full h-80 sm:h-[400px] overflow-hidden">
-        <Link
-          href={backUrl}
-          prefetch={false}
-          className="absolute top-4 left-4 z-10 bg-black/40 hover:bg-black/60 text-white p-2 rounded-full backdrop-blur-sm"
-        >
-          <ArrowLeft className="w-6 h-6" />
-        </Link>
+        <BackButton />
 
         <img
           src={offer.posters?.[0] || "https://placehold.co/800x400"}
@@ -130,7 +123,10 @@ export default async function OfferPage({
           </h2>
           <div className="flex items-center gap-4 border-b border-gray-100 pb-4 mb-4">
             <img
-              src={offer.user?.avatar || "https://img.freepik.com/premium-vector/store-icon_791764-4106.jpg"}
+              src={
+                offer.user?.avatar ||
+                "https://img.freepik.com/premium-vector/store-icon_791764-4106.jpg"
+              }
               alt={offer.user?.name}
               className="w-16 h-16 rounded-full border-4 border-orange-500/20"
             />
@@ -207,7 +203,7 @@ export default async function OfferPage({
         )}
         {merchantOffers.length > 0 && (
           <OfferListHorizontal
-            title="Другие акции партнёра"
+            title={`Другие акции ${offer.user.name}`}
             offers={merchantOffers}
           />
         )}

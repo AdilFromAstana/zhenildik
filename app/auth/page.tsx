@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import LoginForm from "./components/LoginForm";
 import RegisterForm from "./components/RegisterForm";
 import VerifyForm from "./components/VerifyForm";
 
-export default function AuthPage() {
+function AuthContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -19,16 +19,12 @@ export default function AuthPage() {
     try {
       await fetch("/api/auth/set-cookie", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ access_token }),
       });
 
       const returnUrl = searchParams.get("returnUrl");
-
       const targetUrl = returnUrl || "/profile";
-
       router.push(targetUrl);
     } catch (error) {
       console.error("Ошибка при установке куки и редиректе:", error);
@@ -55,7 +51,7 @@ export default function AuthPage() {
             onSuccess={handleLoginSuccess}
             onNeedRegister={handleNeedRegister}
             onSwitchToRegister={() => setMode("register")}
-            onNeedVerify={handleStartVerify} // 👈 сюда прокидываем
+            onNeedVerify={handleStartVerify}
           />
         )}
 
@@ -66,7 +62,7 @@ export default function AuthPage() {
             onVerifyStart={handleStartVerify}
             onBackToLogin={() => setMode("login")}
             onAlreadyRegistered={(email) => {
-              setIdentifier(email); // предзаполним поле логина
+              setIdentifier(email);
               setMode("login");
             }}
           />
@@ -81,5 +77,13 @@ export default function AuthPage() {
         )}
       </div>
     </main>
+  );
+}
+
+export default function AuthPage() {
+  return (
+    <Suspense fallback={<div className="text-center py-10">Загрузка...</div>}>
+      <AuthContent />
+    </Suspense>
   );
 }

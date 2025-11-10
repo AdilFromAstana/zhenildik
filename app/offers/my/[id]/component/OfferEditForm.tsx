@@ -2,13 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import axiosInstance from "@/src/lib/axiosInstance";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import BasicInfoSection from "@/app/(offers)/add/component/OfferForm/BasicInfoSection";
-import PriceSection from "@/app/(offers)/add/component/OfferForm/PriceSection";
-import ConditionsSection from "@/app/(offers)/add/component/OfferForm/ConditionsSection";
-import DateRangeSection from "@/app/(offers)/add/component/OfferForm/DateRangeSection";
-import PosterUploadSection from "@/app/(offers)/add/component/OfferForm/PosterUploadSection";
 import clsx from "clsx";
 import {
   Archive,
@@ -19,6 +13,12 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import { OfferStatus, OfferStatusBadge } from "./OfferStatusBadge";
+import axiosInstance from "@/lib/axiosInstance";
+import BasicInfoSection from "app/offers/add/component/OfferForm/Steps/Step1BasicInfo/BasicInfoSection";
+import PriceSection from "app/offers/add/component/OfferForm/Steps/Step2Details/components/PriceSection";
+import ConditionsSection from "app/offers/add/component/OfferForm/Steps/Step2Details/components/ConditionsSection";
+import DateRangeSection from "app/offers/add/component/OfferForm/Steps/Step2Details/components/DateRangeSection";
+import PosterUploadSection from "app/offers/add/component/OfferForm/Steps/Step3Media/PosterUploadSection";
 
 export default function OfferEditPage() {
   const { id } = useParams();
@@ -115,7 +115,6 @@ export default function OfferEditPage() {
   // --- UI ---
   return (
     <div className="max-w-3xl mx-auto w-full px-4 py-6 space-y-6 pt-0">
-
       {isLoading ? (
         <div className="flex items-center justify-center min-h-[60vh] text-gray-500">
           Загрузка...
@@ -140,8 +139,8 @@ export default function OfferEditPage() {
             errors={{}}
             wasSubmitted={false}
             onChange={handleChange}
-            onOpenCategoryModal={() => { }}
-            readOnly
+            onOpenCategoryModal={() => {}}
+            readOnly={!editMode}
           />
 
           <div className="grid gap-6 md:grid-cols-2">

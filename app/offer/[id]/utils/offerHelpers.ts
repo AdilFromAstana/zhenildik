@@ -4,7 +4,13 @@ import { Offer } from "app/offers/my/page";
 
 export function getDiscountAmount(offer: Offer): number | null {
   if (offer.oldPrice == null || offer.newPrice == null) return null;
-  return offer.oldPrice - offer.newPrice;
+
+  const oldPrice = Number(offer.oldPrice);
+  const newPrice = Number(offer.newPrice);
+
+  if (isNaN(oldPrice) || isNaN(newPrice)) return null;
+
+  return oldPrice - newPrice;
 }
 
 export function isExpired(offer: Offer): boolean {
@@ -38,14 +44,14 @@ export function getOfferJsonLd(offer: Offer) {
           logo: offer.user.avatar ?? undefined,
         }
       : undefined,
-    aggregateRating:
-      offer.user?.rating && offer.user.reviewsCount
-        ? {
-            "@type": "AggregateRating",
-            ratingValue: offer.user.rating,
-            reviewCount: offer.user.reviewsCount,
-          }
-        : undefined,
+    // aggregateRating:
+    //   offer.user?.rating && offer.user.reviewsCount
+    //     ? {
+    //         "@type": "AggregateRating",
+    //         ratingValue: offer.user.rating,
+    //         reviewCount: offer.user.reviewsCount,
+    //       }
+    //     : undefined,
   };
 }
 

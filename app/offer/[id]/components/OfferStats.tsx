@@ -1,6 +1,4 @@
-import { Offer } from "app/offers/my/page";
-
-export default function OfferStats({ offer }: { offer: Offer }) {
+export default function OfferStats({ offer }: { offer: any }) {
   return (
     <div className="p-4">
       {offer.viewsCount != null && (
