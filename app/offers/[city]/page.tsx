@@ -67,6 +67,7 @@ export default async function AllOffersByCityPage({ params, searchParams }: Prop
   const categories = await categoriesRes.json();
   const { data: offers = [], total } = await offersRes.json();
   const totalPages = Math.ceil(total / limit);
+  console.log("cities: ", cities)
   const cityData = cities.find((c: any) => c.slug === city);
   const cityName = cityData ? cityData.name : city;
 
